@@ -1,25 +1,350 @@
 {
-  "zones": [
-    { "name": "Porto Alegre", "lat": -30.0346, "lng": -51.2177, "risk": "red", "lastFlood": "2024-05", "info": "Worst flooding in 80+ years. 181 deaths." },
-    { "name": "Canoas", "lat": -29.9177, "lng": -51.1836, "risk": "red", "lastFlood": "2024-05", "info": "Severely affected in 2024 floods." },
-    { "name": "Lajeado", "lat": -29.1167, "lng": -51.9667, "risk": "red", "lastFlood": "2024-05", "info": "Taquari River valley devastated." },
-    { "name": "Santa Maria", "lat": -29.6842, "lng": -53.8069, "risk": "yellow", "lastFlood": "2023-11", "info": "Multiple flood events in 2023." },
-    { "name": "Blumenau", "lat": -26.9194, "lng": -49.0661, "risk": "yellow", "lastFlood": "2023-09", "info": "Itajaí River flooding history." },
-    { "name": "Florianópolis", "lat": -27.5954, "lng": -48.5480, "risk": "green", "lastFlood": "2022-06", "info": "Coastal city, occasional flooding." },
-    { "name": "São Paulo", "lat": -23.5505, "lng": -46.6333, "risk": "yellow", "lastFlood": "2024-01", "info": "Metropolitan flooding during heavy rains." },
-    { "name": "Campinas", "lat": -22.9099, "lng": -47.0626, "risk": "green", "lastFlood": "2023-12", "info": "Occasional flash floods." },
-    { "name": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "risk": "red", "lastFlood": "2023-12", "info": "2011 floods killed 900+. High landslide risk." },
-    { "name": "Niterói", "lat": -22.8833, "lng": -43.1036, "risk": "yellow", "lastFlood": "2023-03", "info": "Coastal flooding." },
-    { "name": "Belo Horizonte", "lat": -19.9167, "lng": -43.9345, "risk": "yellow", "lastFlood": "2024-01", "info": "Flash floods in rainy season." },
-    { "name": "Mariana", "lat": -20.3775, "lng": -43.4168, "risk": "yellow", "lastFlood": "2015-11", "info": "Dam disaster (Mariana tragedy)." },
-    { "name": "Recife", "lat": -8.0476, "lng": -34.8770, "risk": "yellow", "lastFlood": "2022-05", "info": "2022 floods killed 100+ in Pernambuco." },
-    { "name": "Salvador", "lat": -12.9714, "lng": -38.5014, "risk": "green", "lastFlood": "2021-12", "info": "Coastal flooding risk." },
-    { "name": "Belém", "lat": -1.4558, "lng": -48.5039, "risk": "yellow", "lastFlood": "2023-04", "info": "Amazon river flooding." },
-    { "name": "Ilhéus", "lat": -14.7936, "lng": -39.0467, "risk": "yellow", "lastFlood": "2022-12", "info": "Coastal floods." }
-  ],
-  "metadata": {
-    "lastUpdated": "2024-05-15",
-    "version": "1.0.0",
-    "source": "Historical flood data + CEMADEN"
-  }
+  "version": "2.0.0",
+  "lastUpdated": "2026-03-07",
+  "source": "Historical data + CEMADEN + Recent incidents",
+  
+  "states": {
+    "MG": {
+      "name": "Minas Gerais",
+      "capital": "Belo Horizonte",
+      "risk": "yellow",
+      "cities": {
+        "belo_horizonte": {
+          "name": "Belo Horizonte",
+          "lat": -19.9167,
+          "lng": -43.9345,
+          "risk": "yellow",
+          "population": 2500000,
+          "neighborhoods": [
+            {"name": "Buritis", "lat": -19.9658, "lng": -43.9331, "risk": "yellow"},
+            {"name": "Ouro Preto", "lat": -19.9239, "lng": -43.9372, "risk": "red"},
+            {"name": "Savassi", "lat": -19.9386, "lng": -43.9378, "risk": "green"},
+            {"name": "Lourdes", "lat": -19.9361, "lng": -43.9431, "risk": "green"},
+            {"name": "Funcionários", "lat": -19.9269, "lng": -43.9239, "risk": "yellow"}
+          ],
+          "recentIncidents": [
+            {"date": "2026-03-05", "type": "flash_flood", "description": "Heavy rains caused flooding in several neighborhoods"}
+          ]
+        },
+        "juiz_de_fora": {
+          "name": "Juiz de Fora",
+          "lat": -21.7617,
+          "lng": -43.3217,
+          "risk": "yellow",
+          "population": 550000,
+          "neighborhoods": [
+            {"name": "Centro", "lat": -21.7617, "lng": -43.3217, "risk": "yellow"},
+            {"name": "São Mateus", "lat": -21.7450, "lng": -43.3400, "risk": "yellow"},
+            {"name": "Santa Cruz", "lat": -21.7800, "lng": -43.3100, "risk": "green"}
+          ],
+          "recentIncidents": [
+            {"date": "2026-03-03", "type": "flood", "description": "Rising water levels in Rio Paraibuna"}
+          ]
+        },
+        "mariana": {
+          "name": "Mariana",
+          "lat": -20.3775,
+          "lng": -43.4168,
+          "risk": "yellow",
+          "population": 58000,
+          "neighborhoods": [],
+          "recentIncidents": [
+            {"date": "2015-11-05", "type": "dam_break", "description": "Mariana dam disaster - worst environmental disaster in Brazil"}
+          ]
+        },
+        "carangola": {
+          "name": "Carangola",
+          "lat": -20.7331,
+          "lng": -42.4831,
+          "risk": "red",
+          "population": 23000,
+          "neighborhoods": [],
+          "recentIncidents": [
+            {"date": "2026-01-15", "type": "flood", "description": "Severe flooding in rural areas"}
+          ]
+        }
+      }
+    },
+    "RJ": {
+      "name": "Rio de Janeiro",
+      "capital": "Rio de Janeiro",
+      "risk": "red",
+      "cities": {
+        "rio_de_janeiro": {
+          "name": "Rio de Janeiro",
+          "lat": -22.9068,
+          "lng": -43.1729,
+          "risk": "red",
+          "population": 6700000,
+          "neighborhoods": [
+            {"name": "Jacarepaguá", "lat": -22.9836, "lng": -43.3933, "risk": "red"},
+            {"name": "Barra da Tijuca", "lat": -23.0000, "lng": -43.4500, "risk": "yellow"},
+            {"name": "Copacabana", "lat": -22.9711, "lng": -43.1822, "risk": "green"},
+            {"name": "Ipanema", "lat": -22.9830, "lng": -43.2096, "risk": "green"},
+            {"name": "Botafogo", "lat": -22.9517, "lng": -43.1808, "risk": "green"},
+            {"name": "Santa Teresa", "lat": -22.9292, "lng": -43.1783, "risk": "red"},
+            {"name": "Rocinha", "lat": -22.9844, "lng": -43.2439, "risk": "red"},
+            {"name": "Marechal Hermes", "lat": -22.8833, "lng": -43.2500, "risk": "yellow"}
+          ],
+          "recentIncidents": [
+            {"date": "2023-11", "type": "landslide", "description": "Heavy rains caused landslides in several favelas"},
+            {"date": "2024-04", "type": "flood", "description": "Historic flooding in Jacarepaguá"}
+          ]
+        },
+        "niteroi": {
+          "name": "Niterói",
+          "lat": -22.8833,
+          "lng": -43.1036,
+          "risk": "yellow",
+          "population": 500000,
+          "neighborhoods": [
+            {"name": "Icaraí", "lat": -22.8817, "lng": -43.1067, "risk": "green"},
+            {"name": "Santa Rosa", "lat": -22.9017, "lng": -43.0933, "risk": "yellow"},
+            {"name": "Charitas", "lat": -22.9283, "lng": -43.0950, "risk": "green"}
+          ],
+          "recentIncidents": []
+        },
+        "regiao_dos_lagos": {
+          "name": "Região dos Lagos",
+          "lat": -22.4500,
+          "lng": -41.8833,
+          "risk": "yellow",
+          "population": 350000,
+          "cities": ["Cachoeiro de Itapemirim", "Itaperuna", "Marataizes", "São Francisco de Itabapoana"],
+          "recentIncidents": [
+            {"date": "2026-02-20", "type": "flood", "description": "Coastal flooding in several municipalities"},
+            {"date": "2026-02-22", "type": "erosion", "description": "Beach erosion in Marataizes"}
+          ]
+        },
+        "cachoeiro_itapemirim": {
+          "name": "Cachoeiro de Itapemirim",
+          "lat": -20.8500,
+          "lng": -41.1000,
+          "risk": "yellow",
+          "population": 200000,
+          "neighborhoods": [],
+          "recentIncidents": [
+            {"date": "2026-02-18", "type": "flood", "description": "River overflow in downtown area"}
+          ]
+        }
+      }
+    },
+    "RS": {
+      "name": "Rio Grande do Sul",
+      "capital": "Porto Alegre",
+      "risk": "red",
+      "cities": {
+        "porto_alegre": {
+          "name": "Porto Alegre",
+          "lat": -30.0346,
+          "lng": -51.2177,
+          "risk": "red",
+          "population": 1500000,
+          "neighborhoods": [
+            {"name": "Arquipélago", "lat": -30.0500, "lng": -51.2500, "risk": "red"},
+            {"name": "Restinga", "lat": -30.1167, "lng": -51.1833, "risk": "red"},
+            {"name": "Lomba do Pinhal", "lat": -30.0833, "lng": -51.1500, "risk": "yellow"},
+            {"name": "Humaitá", "lat": -30.0278, "lng": -51.2264, "risk": "green"}
+          ],
+          "recentIncidents": [
+            {"date": "2024-05", "type": "flood", "description": "Worst flooding in 80+ years. 181 deaths. Guaíba Lake rose to 5.31m."}
+          ]
+        },
+        "canoas": {
+          "name": "Canoas",
+          "lat": -29.9177,
+          "lng": -51.1836,
+          "risk": "red",
+          "population": 350000,
+          "neighborhoods": [
+            {"name": "Niterói", "lat": -29.9333, "lng": -51.2000, "risk": "red"},
+            {"name": "Boa Vista", "lat": -29.9000, "lng": -51.1667, "risk": "yellow"}
+          ],
+          "recentIncidents": [
+            {"date": "2024-05", "type": "flood", "description": "Severely affected in 2024 floods"}
+          ]
+        },
+        "lajeado": {
+          "name": "Lajeado",
+          "lat": -29.1167,
+          "lng": -51.9667,
+          "risk": "red",
+          "population": 85000,
+          "neighborhoods": [],
+          "recentIncidents": [
+            {"date": "2024-05", "type": "flood", "description": "Taquari River valley devastated"}
+          ]
+        }
+      }
+    },
+    "SP": {
+      "name": "São Paulo",
+      "capital": "São Paulo",
+      "risk": "yellow",
+      "cities": {
+        "sao_paulo": {
+          "name": "São Paulo",
+          "lat": -23.5505,
+          "lng": -46.6333,
+          "risk": "yellow",
+          "population": 12000000,
+          "neighborhoods": [
+            {"name": "Parelheiros", "lat": -23.8000, "lng": -46.7333, "risk": "red"},
+            {"name": "Marsilac", "lat": -23.8167, "lng": -46.6833, "risk": "red"},
+            {"name": "Capão Redondo", "lat": -23.6833, "lng": -46.7667, "risk": "yellow"},
+            {"name": "Vila Andrade", "lat": -23.6500, "lng": -46.7500, "risk": "yellow"},
+            {"name": "Moema", "lat": -23.6000, "lng": -46.6700, "risk": "green"},
+            {"name": "Jardins", "lat": -23.5833, "lng": -46.6833, "risk": "green"}
+          ],
+          "recentIncidents": [
+            {"date": "2024-01", "type": "flood", "description": "Heavy rains caused flooding in southern zones"}
+          ]
+        },
+        "campinas": {
+          "name": "Campinas",
+          "lat": -22.9099,
+          "lng": -47.0626,
+          "risk": "green",
+          "population": 1200000,
+          "neighborhoods": [],
+          "recentIncidents": []
+        },
+        "santos": {
+          "name": "Santos",
+          "lat": -23.9608,
+          "lng": -46.3336,
+          "risk": "yellow",
+          "population": 430000,
+          "neighborhoods": [
+            {"name": "Pompéia", "lat": -23.9500, "lng": -46.3167, "risk": "green"},
+            {"name": "Boqueirão", "lat": -23.9667, "lng": -46.3500, "risk": "green"}
+          ],
+          "recentIncidents": [
+            {"date": "2024-02", "type": "coastal_flood", "description": "High tide flooding in coastal areas"}
+          ]
+        }
+      }
+    },
+    "SC": {
+      "name": "Santa Catarina",
+      "capital": "Florianópolis",
+      "risk": "yellow",
+      "cities": {
+        "florianopolis": {
+          "name": "Florianópolis",
+          "lat": -27.5954,
+          "lng": -48.5480,
+          "risk": "green",
+          "population": 500000,
+          "neighborhoods": [],
+          "recentIncidents": []
+        },
+        "blumenau": {
+          "name": "Blumenau",
+          "lat": -26.9194,
+          "lng": -49.0661,
+          "risk": "yellow",
+          "population": 360000,
+          "neighborhoods": [
+            {"name": "Velha", "lat": -26.9333, "lng": -49.0833, "risk": "yellow"},
+            {"name": "Ponta Aguda", "lat": -26.9000, "lng": -49.0500, "risk": "green"}
+          ],
+          "recentIncidents": [
+            {"date": "2023-09", "type": "flood", "description": "Itajaí River flooding"}
+          ]
+        },
+        "itajai": {
+          "name": "Itajaí",
+          "lat": -26.9075,
+          "lng": -48.6694,
+          "risk": "yellow",
+          "population": 220000,
+          "neighborhoods": [],
+          "recentIncidents": [
+            {"date": "2023-09", "type": "flood", "description": "Port city severely affected"}
+          ]
+        }
+      }
+    },
+    "PE": {
+      "name": "Pernambuco",
+      "capital": "Recife",
+      "risk": "yellow",
+      "cities": {
+        "recife": {
+          "name": "Recife",
+          "lat": -8.0476,
+          "lng": -34.8770,
+          "risk": "yellow",
+          "population": 1600000,
+          "neighborhoods": [
+            {"name": "Coelhos", "lat": -8.0500, "lng": -34.9000, "risk": "red"},
+            {"name": "Boa Viagem", "lat": -8.1167, "lng": -34.9000, "risk": "green"},
+            {"name": "Casa Amarela", "lat": -8.0000, "lng": -34.9333, "risk": "yellow"}
+          ],
+          "recentIncidents": [
+            {"date": "2022-05", "type": "flood", "description": "Deadly floods killed 100+ people in Pernambuco"}
+          ]
+        }
+      }
+    },
+    "BA": {
+      "name": "Bahia",
+      "capital": "Salvador",
+      "risk": "green",
+      "cities": {
+        "salvador": {
+          "name": "Salvador",
+          "lat": -12.9714,
+          "lng": -38.5014,
+          "risk": "green",
+          "population": 2900000,
+          "neighborhoods": [],
+          "recentIncidents": []
+        },
+        "ilheus": {
+          "name": "Ilhéus",
+          "lat": -14.7936,
+          "lng": -39.0467,
+          "risk": "yellow",
+          "population": 180000,
+          "neighborhoods": [],
+          "recentIncidents": [
+            {"date": "2022-12", "type": "flood", "description": "Coastal flooding and erosion"}
+          ]
+        }
+      }
+    },
+    "PA": {
+      "name": "Pará",
+      "capital": "Belém",
+      "risk": "yellow",
+      "cities": {
+        "belem": {
+          "name": "Belém",
+          "lat": -1.4558,
+          "lng": -48.5039,
+          "risk": "yellow",
+          "population": 1500000,
+          "neighborhoods": [
+            {"name": "Guamá", "lat": -1.4500, "lng": -48.4833, "risk": "yellow"},
+            {"name": "Marco", "lat": -1.4167, "lng": -48.5000, "risk": "green"}
+          ],
+          "recentIncidents": [
+            {"date": "2023-04", "type": "flood", "description": "Amazon river flooding affecting riverine communities"}
+          ]
+        }
+      }
+    }
+  },
+  
+  "recentEvents": [
+    {"date": "2026-03-05", "location": "Belo Horizonte, MG", "type": "flash_flood", "severity": "yellow", "description": "Heavy rains caused flooding in several neighborhoods"},
+    {"date": "2026-03-03", "location": "Juiz de Fora, MG", "type": "flood", "severity": "yellow", "description": "Rising water levels in Rio Paraibuna"},
+    {"date": "2026-02-22", "location": "Região dos Lagos, RJ", "type": "erosion", "severity": "yellow", "description": "Beach erosion in Marataizes"},
+    {"date": "2026-02-20", "location": "Região dos Lagos, RJ", "type": "flood", "severity": "yellow", "description": "Coastal flooding in several municipalities"},
+    {"date": "2026-02-18", "location": "Cachoeiro de Itapemirim, RJ", "type": "flood", "severity": "yellow", "description": "River overflow in downtown area"},
+    {"date": "2026-01-15", "location": "Carangola, MG", "type": "flood", "severity": "red", "description": "Severe flooding in rural areas"},
+    {"date": "2024-05", "location": "Porto Alegre, RS", "type": "flood", "severity": "red", "description": "Worst flooding in 80+ years. 181 deaths."}
+  ]
 }
