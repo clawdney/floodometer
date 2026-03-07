@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floodometer Brazil</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e94560;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .logo-icon {
+            font-size: 1.8rem;
+        }
+        
+        .status-badge {
+            background: #e94560;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        #map {
+            height: calc(100vh - 70px);
+            width: 100%;
+        }
+        
+        .legend {
+            background: rgba(26, 26, 46, 0.95);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        
+        .legend h4 {
+            margin-bottom: 0.5rem;
+            color: #e94560;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.3rem 0;
+        }
+        
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .dot.red { background: #e94560; box-shadow: 0 0 8px #e94560; }
+        .dot.yellow { background: #f4d03f; box-shadow: 0 0 8px #f4d03f; }
+        .dot.green { background: #2ecc71; box-shadow: 0 0 8px #2ecc71; }
+        
+        .info-panel {
+            background: rgba(26, 26, 46, 0.95);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #333;
+            max-width: 250px;
+        }
+        
+        .info-panel h3 {
+            color: #e94560;
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-panel p {
+            font-size: 0.9rem;
+            color: #ccc;
+            line-height: 1.4;
+        }
+        
+        .last-updated {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <span class="logo-icon">🌊</span>
+            <span>Floodometer Brazil</span>
+        </div>
+        <div class="status-badge">Live</div>
+    </header>
+    
+    <div id="map"></div>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        // Initialize map centered on Brazil
+        const map = L.map('map').setView([-14.235, -51.925], 4);
+        
+        // Dark map tiles
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap, CartoDB',
+            maxZoom: 19
+        }).addTo(map);
+        
+        // Flood zones data (POC - will be fetched from API later)
+        const floodZones = [
+            // Rio Grande do Sul - HIGH RISK (recent floods)
+            { name: "Porto Alegre", lat: -30.0346, lng: -51.2177, risk: "red", lastFlood: "2024-05", info: "Worst flooding in 80+ years. 181 deaths." },
+            { name: "Canoas", lat: -29.9177, lng: -51.1836, risk: "red", lastFlood: "2024-05", info: "Severely affected in 2024 floods." },
+            { name: "Lajeado", lat: -29.1167, lng: -51.9667, risk: "red", lastFlood: "2024-05", info: "Taquari River valley devastated." },
+            { name: "Santa Maria", lat: -29.6842, lng: -53.8069, risk: "yellow", lastFlood: "2023-11", info: "Multiple flood events in 2023." },
+            
+            // Santa Catarina
+            { name: "Blumenau", lat: -26.9194, lng: -49.0661, risk: "yellow", lastFlood: "2023-09", info: "Itajaí River flooding history." },
+            { name: "Florianópolis", lat: -27.5954, lng: -48.5480, risk: "green", lastFlood: "2022-06", info: "Coastal city, occasional flooding." },
+            
+            // São Paulo
+            { name: "São Paulo", lat: -23.5505, lng: -46.6333, risk: "yellow", lastFlood: "2024-01", info: "Metropolitan flooding during heavy rains." },
+            { name: "Campinas", lat: -22.9099, lng: -47.0626, risk: "green", lastFlood: "2023-12", info: "Occasional flash floods." },
+            
+            // Rio de Janeiro
+            { name: "Rio de Janeiro", lat: -22.9068, lng: -43.1729, risk: "red", lastFlood: "2023-12", info: "2011 floods killed 900+. High landslide risk." },
+            { name: "Niterói", lat: -22.8833, lng: -43.1036, risk: "yellow", lastFlood: "2023-03", info: "Coastal flooding." },
+            
+            // Minas Gerais
+            { name: "Belo Horizonte", lat: -19.9167, lng: -43.9345, risk: "yellow", lastFlood: "2024-01", info: "Flash floods in rainy season." },
+            { name: "Mariana", lat: -20.3775, lng: -43.4168, risk: "yellow", lastFlood: "2015-11", info: "Dam disaster (Mariana tragedy)." },
+            
+            // Northeast
+            { name: "Recife", lat: -8.0476, lng: -34.8770, risk: "yellow", lastFlood: "2022-05", info: "2022 floods killed 100+ in Pernambuco." },
+            { name: "Salvador", lat: -12.9714, lng: -38.5014, risk: "green", lastFlood: "2021-12", info: "Coastal flooding risk." },
+            
+            // Pará / Amazon
+            { name: "Belém", lat: -1.4558, lng: -48.5039, risk: "yellow", lastFlood: "2023-04", info: "Amazon river flooding." },
+            
+            // Bahia
+            { name: "Ilhéus", lat: -14.7936, lng: -39.0467, risk: "yellow", lastFlood: "2022-12", info: "Coastal floods." }
+        ];
+        
+        // Custom markers
+        const icons = {
+            red: L.divIcon({
+                className: 'custom-marker',
+                html: '<div class="dot red"></div>',
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            }),
+            yellow: L.divIcon({
+                className: 'custom-marker',
+                html: '<div class="dot yellow"></div>',
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            }),
+            green: L.divIcon({
+                className: 'custom-marker',
+                html: '<div class="dot green"></div>',
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            })
+        };
+        
+        // Risk labels
+        const riskLabels = {
+            red: "🚨 High Risk",
+            yellow: "⚠️ Medium Risk", 
+            green: "✅ Low Risk"
+        };
+        
+        // Add markers
+        floodZones.forEach(zone => {
+            const marker = L.marker([zone.lat, zone.lng], {
+                icon: icons[zone.risk]
+            }).addTo(map);
+            
+            const popupContent = `
+                <div style="min-width: 200px;">
+                    <h3 style="color: ${zone.risk === 'red' ? '#e94560' : zone.risk === 'yellow' ? '#f4d03f' : '#2ecc71'}; margin: 0 0 0.5rem 0;">
+                        ${riskLabels[zone.risk]}
+                    </h3>
+                    <strong>${zone.name}</strong>
+                    <p style="margin: 0.5rem 0; color: #666; font-size: 0.85rem;">
+                        Last flood: ${zone.lastFlood}
+                    </p>
+                    <p style="margin: 0; color: #ccc; font-size: 0.9rem;">
+                        ${zone.info}
+                    </p>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent);
+        });
+        
+        // Legend
+        const legend = L.control({ position: 'bottomright' });
+        legend.onAdd = function() {
+            const div = L.DomUtil.create('div', 'legend');
+            div.innerHTML = `
+                <h4>Flood Risk</h4>
+                <div class="legend-item"><span class="dot red"></span> High (Recent)</div>
+                <div class="legend-item"><span class="dot yellow"></span> Medium</div>
+                <div class="legend-item"><span class="dot green"></span> Low</div>
+            `;
+            return div;
+        };
+        legend.addTo(map);
+        
+        // Info panel
+        const info = L.control({ position: 'topleft' });
+        info.onAdd = function() {
+            const div = L.DomUtil.create('div', 'info-panel');
+            div.innerHTML = `
+                <h3>🌊 Floodometer</h3>
+                <p>Brazil flood risk map based on historical data and recent incidents.</p>
+                <p class="last-updated">Last updated: ${new Date().toLocaleDateString()}</p>
+            `;
+            return div;
+        };
+        info.addTo(map);
+        
+        console.log(`Loaded ${floodZones.length} flood zones`);
+    </script>
+</body>
+</html>
