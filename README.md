@@ -1,49 +1,72 @@
 # 🌊 Floodometer Brazil
 
-Real-time flood risk map for Brazil with color-coded risk indicators based on historical data and recent incidents.
+Real-time flood risk monitoring system for Brazil.
 
-## Features
+## Architecture
 
-- 🗺️ Interactive map with flood-prone locations
-- 🚦 Color-coded risk levels (Red/Yellow/Green)
-- 📍 Click markers for detailed info
-- 🌧️ Data sourced from historical flood records
+### Data Hierarchy
+```
+Brazil (27 states)
+  └── Cities (~5,570 municipalities)
+       └── Neighborhoods (major cities only)
+```
+
+### News Sources (3 Tiers)
+
+**Tier 1 - National:**
+- G1, CNN Brasil, Band, Estadão, Folha, R7
+
+**Tier 2 - Regional:**
+- MG: Estado de Minas, O Tempo, Hoje em Dia
+- RJ: O Dia, Extra, Meia Hora
+- RS: Correio do Povo, Zero Hora, GaúchaZH
+- SP, SC, PE, BA, PA: Local portals
+
+**Tier 3 - Local (future):**
+- City councils
+- Local news sites
+- Facebook groups
+
+## Quick Start
+
+### Web App
+Visit: https://clawdney.github.io/floodometer/
+
+### Run Scraper
+```bash
+pip install -r requirements.txt
+python scraper.py
+```
+
+## Files
+
+- `docs/index.html` - Main web app
+- `docs/data.json` - City/neighborhood data (v2)
+- `docs/sources.json` - News sources config (v3)
+- `docs/incidents.json` - Scraped incidents (generated)
+- `scraper.py` - News scraper script
+- `.github/workflows/` - Auto-deploy
 
 ## Risk Levels
 
-| Level | Color | Meaning |
-|-------|-------|---------|
-| 🔴 High | Red | Recent flooding (2023-2024) or deadly history |
-| 🟡 Medium | Yellow | Occasional flooding, moderate risk |
-| 🟢 Low | Green | Rare flooding, lower risk |
+| Level | Color | Criteria |
+|-------|-------|----------|
+| 🔴 Red | High | Recent flooding (< 30 days), high risk history |
+| 🟡 Yellow | Medium | Warning conditions, moderate risk |
+| 🟢 Green | Safe | No recent incidents, low risk |
 
-## Development
+## API Integration (Phase 2)
 
-### Local Preview
-
-```bash
-# Simply open in browser
-open docs/index.html
-# or
-python3 -m http.server 8000
-```
-
-### Deploy
-
-Push to main branch → GitHub Actions automatically deploys to GitHub Pages.
-
-## Data Sources
-
-- Historical flood data from Wikipedia
-- INMET (Brazil weather agency)
+Planned:
+- Open-Meteo weather API
+- INMET (Brazil weather service)
 - CEMADEN (disaster monitoring)
-- News reports
 
-## Tech Stack
+## Contributing
 
-- Leaflet.js (free, open-source maps)
-- Vanilla JavaScript
-- GitHub Pages for hosting
+1. Add cities to `docs/data.json`
+2. Add news sources to `docs/sources.json`
+3. Update risk levels based on incidents
 
 ---
 
