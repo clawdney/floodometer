@@ -362,7 +362,7 @@
             
             Object.values(floodData.states).forEach(state => {
                 Object.values(state.cities || {}).forEach(city => {
-                    const forecast = getForecastRisk(city.name, state.code);
+                    const forecast = getForecastRisk(city.name, code);
                     const risk = getCombinedRisk(city.risk, forecast);
                     
                     if (risk === 'red') red++;
