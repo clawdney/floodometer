@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Floodometer Brazil</title>
+    <title>🌧️ Floodometer Brazil</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -15,607 +15,207 @@
             --accent: #e94560;
             --text: #fff;
             --text-dim: #aaa;
-            --risk-red: #e94560;
-            --risk-orange: #ff8c00;
-            --risk-yellow: #f4d03f;
-            --risk-green: #2ecc71;
+            --risk-red: #ff4444;
+            --risk-orange: #ff8800;
+            --risk-yellow: #ffcc00;
+            --risk-green: #00cc66;
         }
         
-        body {
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+        html, body {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-dark);
             color: var(--text);
-            height: 100vh;
-            overflow: hidden;
         }
         
         header {
-            background: linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-card) 100%);
-            padding: 0.8rem 1.5rem;
+            background: var(--bg-panel);
+            padding: 10px 15px;
+            border-bottom: 2px solid var(--accent);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid var(--accent);
-            z-index: 1000;
-            position: relative;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         
         .logo {
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             font-weight: bold;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 5px;
         }
-        
-        .logo-icon { font-size: 1.5rem; }
         
         .header-stats {
             display: flex;
-            gap: 1rem;
-            font-size: 0.85rem;
-        }
-        
-        .stat {
-            padding: 0.3rem 0.8rem;
-            border-radius: 15px;
-            background: rgba(255,255,255,0.1);
-        }
-        
-        .stat.red { color: var(--risk-red); border: 1px solid var(--risk-red); }
-        .stat.orange { color: var(--risk-orange); border: 1px solid var(--risk-orange); }
-        .stat.yellow { color: var(--risk-yellow); border: 1px solid var(--risk-yellow); }
-        .stat.green { color: var(--risk-green); border: 1px solid var(--risk-green); }
-        
-        .forecast-badge {
-            font-size: 0.7rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            margin-left: 0.5rem;
-        }
-        
-        .forecast-badge.red { background: rgba(233, 69, 96, 0.3); }
-        .forecast-badge.orange { background: rgba(255, 140, 0, 0.3); }
-        .forecast-badge.yellow { background: rgba(244, 208, 63, 0.3); }
-        .forecast-badge.green { background: rgba(46, 204, 113, 0.3); }
-        
-        .container {
-            display: flex;
-            height: calc(100vh - 55px);
-        }
-        
-        .sidebar {
-            width: 350px;
-            background: var(--bg-panel);
-            border-right: 1px solid #333;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .breadcrumb {
-            padding: 1rem;
-            background: var(--bg-card);
-            border-bottom: 1px solid #333;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            gap: 8px;
+            font-size: 0.75rem;
             flex-wrap: wrap;
         }
         
-        .breadcrumb-item {
-            color: var(--text-dim);
-            cursor: pointer;
+        .stat {
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
         }
         
-        .breadcrumb-item:hover { color: var(--accent); }
-        .breadcrumb-item.current { color: var(--text); font-weight: bold; cursor: default; }
-        .breadcrumb-sep { color: #555; }
+        .stat.red { background: rgba(255,68,68,0.2); color: var(--risk-red); }
+        .stat.orange { background: rgba(255,136,0,0.2); color: var(--risk-orange); }
+        .stat.yellow { background: rgba(255,204,0,0.2); color: var(--risk-yellow); }
+        .stat.green { background: rgba(0,204,102,0.2); color: var(--risk-green); }
         
-        .location-list { flex: 1; overflow-y: auto; padding: 0.5rem; }
-        
-        .location-item {
-            background: var(--bg-card);
-            border-radius: 8px;
-            padding: 0.8rem;
-            margin-bottom: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-left: 4px solid transparent;
+        .toggle-btn {
+            display: none;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 0.9rem;
         }
         
-        .location-item:hover { background: #1e2a4a; transform: translateX(4px); }
-        .location-item.red { border-left-color: var(--risk-red); }
-        .location-item.orange { border-left-color: var(--risk-orange); }
-        .location-item.yellow { border-left-color: var(--risk-yellow); }
-        .location-item.green { border-left-color: var(--risk-green); }
-        
-        .location-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .location-name { font-weight: 600; }
-        
-        .risk-badge {
-            font-size: 0.7rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 10px;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
-        
-        .risk-badge.red { background: rgba(233, 69, 96, 0.2); color: var(--risk-red); }
-        .risk-badge.orange { background: rgba(255, 140, 0, 0.2); color: var(--risk-orange); }
-        .risk-badge.yellow { background: rgba(244, 208, 63, 0.2); color: var(--risk-yellow); }
-        .risk-badge.green { background: rgba(46, 204, 113, 0.2); color: var(--risk-green); }
-        
-        .location-meta {
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            margin-top: 0.3rem;
-        }
-        
-        .forecast-info {
-            font-size: 0.75rem;
-            margin-top: 0.3rem;
-            padding: 0.3rem;
-            background: rgba(0,0,0,0.2);
-            border-radius: 4px;
-        }
-        
-        .forecast-info span { color: var(--accent); font-weight: bold; }
-        
-        .incident-badge {
-            display: inline-block;
-            background: rgba(233, 69, 96, 0.15);
-            color: var(--risk-red);
-            font-size: 0.7rem;
-            padding: 0.15rem 0.4rem;
-            border-radius: 4px;
-            margin-top: 0.3rem;
-        }
-        
-        .map-container { flex: 1; position: relative; }
-        
-        #map { height: 100%; width: 100%; }
+        #map { height: calc(100vh - 50px); width: 100%; }
         
         .legend {
             background: rgba(26, 26, 46, 0.95);
-            padding: 1rem;
+            padding: 10px;
             border-radius: 8px;
-            border: 1px solid #333;
+            border: 1px solid #444;
+            font-size: 0.75rem;
         }
         
-        .legend h4 { margin-bottom: 0.5rem; color: var(--accent); font-size: 0.9rem; }
+        .legend h4 { margin-bottom: 5px; color: var(--accent); }
         
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            margin: 0.3rem 0;
-            font-size: 0.85rem;
+            gap: 5px;
+            margin: 3px 0;
         }
         
-        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; }
         
-        .dot.red { background: var(--risk-red); box-shadow: 0 0 6px var(--risk-red); }
-        .dot.orange { background: var(--risk-orange); box-shadow: 0 0 6px var(--risk-orange); }
-        .dot.yellow { background: var(--risk-yellow); box-shadow: 0 0 6px var(--risk-yellow); }
-        .dot.green { background: var(--risk-green); box-shadow: 0 0 6px var(--risk-green); }
+        .dot.red { background: var(--risk-red); }
+        .dot.orange { background: var(--risk-orange); }
+        .dot.yellow { background: var(--risk-yellow); }
+        .dot.green { background: var(--risk-green); }
         
-        .info-panel {
-            background: rgba(26, 26, 46, 0.95);
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px solid #333;
-            max-width: 280px;
-        }
-        
-        .info-panel h3 { color: var(--accent); margin-bottom: 0.5rem; font-size: 1rem; }
-        .info-panel p { font-size: 0.85rem; color: var(--text-dim); line-height: 1.4; }
-        
-        .events-section {
-            padding: 1rem;
-            border-top: 1px solid #333;
-            background: var(--bg-card);
-        }
-        
-        .events-title {
-            font-size: 0.9rem;
-            color: var(--accent);
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .event-item {
-            font-size: 0.8rem;
-            padding: 0.5rem;
-            background: rgba(0,0,0,0.2);
-            border-radius: 4px;
-            margin-bottom: 0.3rem;
-            border-left: 3px solid var(--risk-red);
-        }
-        
-        .event-date { color: var(--text-dim); font-size: 0.7rem; }
-        
-        .last-updated {
-            font-size: 0.7rem;
-            color: #555;
-            margin-top: 0.5rem;
-            text-align: center;
+        @media (max-width: 768px) {
+            .toggle-btn { display: block; }
+            
+            #map { height: 100vh; width: 100%; }
+            
+            header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+            }
+            
+            #map { margin-top: 50px; }
         }
     </style>
 </head>
 <body>
     <header>
-        <div class="logo">
-            <span class="logo-icon">🌧️</span>
-            <span>Floodometer Brazil</span>
-        </div>
+        <div class="logo">🌧️ Floodometer</div>
         <div class="header-stats" id="headerStats"></div>
     </header>
     
-    <div class="container">
-        <aside class="sidebar" id="sidebar">
-            <div class="breadcrumb" id="breadcrumb">
-                <span class="breadcrumb-item current" data-level="brazil">Brazil</span>
-            </div>
-            
-            <div class="location-list" id="locationList"></div>
-            
-            <div class="events-section">
-                <div class="events-title">📰 Recent Incidents</div>
-                <div id="eventsList"></div>
-            </div>
-        </aside>
-        
-        <div class="map-container">
-            <div id="map"></div>
-        </div>
-    </div>
+    <div id="map"></div>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Initialize map
         const map = L.map('map').setView([-14.235, -51.925], 4);
         
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap, CartoDB',
-            maxZoom: 19
+            attribution: '© OpenStreetMap'
         }).addTo(map);
         
-        // Data
-        let floodData = null;
-        let forecastData = null;
-        let currentLevel = 'brazil';
-        
-        // Icons
         const icons = {
-            red: L.divIcon({ className: 'custom-marker', html: '<div class="dot red"></div>', iconSize: [14, 14], iconAnchor: [7, 7] }),
-            orange: L.divIcon({ className: 'custom-marker', html: '<div class="dot orange"></div>', iconSize: [14, 14], iconAnchor: [7, 7] }),
-            yellow: L.divIcon({ className: 'custom-marker', html: '<div class="dot yellow"></div>', iconSize: [14, 14], iconAnchor: [7, 7] }),
-            green: L.divIcon({ className: 'custom-marker', html: '<div class="dot green"></div>', iconSize: [14, 14], iconAnchor: [7, 7] })
+            red: L.divIcon({ html: '<div class="dot red" style="width:14px;height:14px;background:var(--risk-red);border-radius:50%;box-shadow:0 0 8px var(--risk-red)"></div>', iconSize: [14, 14] }),
+            orange: L.divIcon({ html: '<div class="dot orange" style="width:14px;height:14px;background:var(--risk-orange);border-radius:50%;box-shadow:0 0 8px var(--risk-orange)"></div>', iconSize: [14, 14] }),
+            yellow: L.divIcon({ html: '<div class="dot yellow" style="width:14px;height:14px;background:var(--risk-yellow);border-radius:50%;box-shadow:0 0 8px var(--risk-yellow)"></div>', iconSize: [14, 14] }),
+            green: L.divIcon({ html: '<div class="dot green" style="width:14px;height:14px;background:var(--risk-green);border-radius:50%;box-shadow:0 0 8px var(--risk-green)"></div>', iconSize: [14, 14] })
         };
         
-        let markersLayer = L.layerGroup().addTo(map);
+        let floodData = null;
+        let forecastData = null;
         
-        // Build forecast lookup
-        function getForecastRisk(cityName, stateCode) {
-            if (!forecastData || !forecastData.cities) return null;
-            
-            // Try exact match first
-            let city = forecastData.cities.find(c => 
-                c.name.toLowerCase() === cityName.toLowerCase() && 
-                c.state === stateCode
-            );
-            
-            // Try partial match
-            if (!city) {
-                city = forecastData.cities.find(c => 
-                    c.name.toLowerCase().includes(cityName.toLowerCase()) ||
-                    cityName.toLowerCase().includes(c.name.toLowerCase())
-                );
-            }
-            
-            return city || null;
-        }
-        
-        // Merge historical + forecast risk
-        function getCombinedRisk(historicalRisk, forecast) {
-            if (!forecast) return historicalRisk || 'green';
-            
-            const riskOrder = { 'green': 0, 'yellow': 1, 'orange': 2, 'red': 3 };
-            const forecastRisk = forecast.overall_risk || 'green';
-            
-            // Take the worse of the two
-            return riskOrder[forecastRisk] >= riskOrder[historicalRisk || 'green'] ? forecastRisk : historicalRisk;
-        }
-        
-        // Load data
         async function loadData() {
-            console.log("Loading flood data...");
-            const floodResp = await fetch('data.json');
-            floodData = await floodResp.json();
-            
-            console.log("Loading forecast...");
             try {
-                const forecastResp = await fetch('forecast.json');
-                forecastData = await forecastResp.json();
-                console.log("Forecast loaded:", forecastData.total_cities, "cities");
-            } catch (e) {
-                console.log("No forecast data available");
-                forecastData = { cities: [], timestamp: null };
-            }
+                floodData = await (await fetch('data.json')).json();
+            } catch(e) { floodData = { states: {} }; }
             
-            renderBrazil();
-            renderRecentEvents();
-            updateStats();
+            try {
+                forecastData = await (await fetch('forecast.json')).json();
+            } catch(e) { forecastData = { cities: [] }; }
+            
+            renderAll();
         }
         
-        function updateStats() {
-            let red = 0, orange = 0, yellow = 0, green = 0;
+        function getForecast(cityName, stateCode) {
+            if (!forecastData?.cities) return null;
+            return forecastData.cities.find(c => 
+                c.name.toLowerCase().includes(cityName.toLowerCase()) ||
+                cityName.toLowerCase().includes(c.name.toLowerCase())
+            );
+        }
+        
+        function getRisk(historical, forecast) {
+            const order = { green: 0, yellow: 1, orange: 2, red: 3 };
+            const f = forecast?.overall_risk || 'green';
+            const h = historical || 'green';
+            return order[f] >= order[h] ? f : h;
+        }
+        
+        function renderAll() {
+            let stats = { red: 0, orange: 0, yellow: 0, green: 0 };
+            const markers = [];
             
-            Object.values(floodData.states).forEach(state => {
-                Object.values(state.cities || {}).forEach(city => {
-                    const forecast = getForecastRisk(city.name, code);
-                    const risk = getCombinedRisk(city.risk, forecast);
+            // States
+            for (const [code, state] of Object.entries(floodData.states || {})) {
+                for (const [cityKey, city] of Object.entries(state.cities || {})) {
+                    const forecast = getForecast(city.name, code);
+                    const risk = getRisk(city.risk, forecast);
+                    stats[risk] = (stats[risk] || 0) + 1;
                     
-                    if (risk === 'red') red++;
-                    else if (risk === 'orange') orange++;
-                    else if (risk === 'yellow') yellow++;
-                    else green++;
-                    
+                    // Add neighborhood stats
                     (city.neighborhoods || []).forEach(n => {
-                        if (n.risk === 'red') red++;
-                        else if (n.risk === 'orange') orange++;
-                        else if (n.risk === 'yellow') yellow++;
-                        else green++;
+                        stats[n.risk] = (stats[n.risk] || 0) + 1;
                     });
-                });
-            });
-            
-            const timestamp = forecastData?.timestamp ? new Date(forecastData.timestamp).toLocaleString() : 'N/A';
-            
-            document.getElementById('headerStats').innerHTML = `
-                <span class="stat red">🔴 ${red}</span>
-                <span class="stat orange">🟠 ${orange}</span>
-                <span class="stat yellow">🟡 ${yellow}</span>
-                <span class="stat green">🟢 ${green}</span>
-                <span class="last-updated">Forecast: ${timestamp}</span>
-            `;
-        }
-        
-        function renderBreadcrumb(level, name) {
-            const bc = document.getElementById('breadcrumb');
-            bc.innerHTML = `<span class="breadcrumb-item" onclick="goToLevel('brazil')">Brazil</span>`;
-            
-            if (level === 'state' || level === 'city') {
-                bc.innerHTML += ` <span class="breadcrumb-sep">›</span> <span class="breadcrumb-item current">${name}</span>`;
-            }
-        }
-        
-        function renderBrazil() {
-            currentLevel = 'brazil';
-            renderBreadcrumb('brazil');
-            
-            const list = document.getElementById('locationList');
-            list.innerHTML = '';
-            markersLayer.clearLayers();
-            
-            Object.entries(floodData.states).forEach(([code, state]) => {
-                // Calculate state risk from cities
-                let stateRisk = 'green';
-                let maxRisk = 0;
-                const riskOrder = { 'green': 0, 'yellow': 1, 'orange': 2, 'red': 3 };
-                
-                Object.values(state.cities || {}).forEach(city => {
-                    const forecast = getForecastRisk(city.name, code);
-                    const risk = getCombinedRisk(city.risk, forecast);
-                    if (riskOrder[risk] > maxRisk) {
-                        maxRisk = riskOrder[risk];
-                        stateRisk = risk;
-                    }
-                });
-                
-                const item = document.createElement('div');
-                item.className = `location-item ${stateRisk}`;
-                item.innerHTML = `
-                    <div class="location-header">
-                        <span class="location-name">${state.name}</span>
-                        <span class="risk-badge ${stateRisk}">${stateRisk}</span>
-                    </div>
-                    <div class="location-meta">${Object.keys(state.cities || {}).length} cities</div>
-                `;
-                item.onclick = () => renderState(code);
-                list.appendChild(item);
-                
-                // Add state capital marker
-                const capital = state.cities[Object.keys(state.cities)[0]];
-                if (capital) {
-                    const forecast = getForecastRisk(capital.name, code);
-                    const risk = getCombinedRisk(stateRisk, forecast);
-                    L.marker([capital.lat, capital.lng], { icon: icons[risk] })
-                        .bindPopup(`<strong>${state.name}</strong><br>Risk: ${risk}<br>Capital: ${capital.name}`)
-                        .addTo(markersLayer);
-                }
-            });
-            
-            map.setView([-14.235, -51.925], 4);
-        }
-        
-        function renderState(stateCode) {
-            const state = floodData.states[stateCode];
-            currentLevel = 'state';
-            renderBreadcrumb('state', state.name);
-            
-            const list = document.getElementById('locationList');
-            list.innerHTML = '';
-            markersLayer.clearLayers();
-            
-            Object.entries(state.cities).forEach(([code, city]) => {
-                const forecast = getForecastRisk(city.name, stateCode);
-                const risk = getCombinedRisk(city.risk, forecast);
-                const hasIncidents = city.recentIncidents && city.recentIncidents.length > 0;
-                
-                const item = document.createElement('div');
-                item.className = `location-item ${risk}`;
-                
-                let forecastHtml = '';
-                if (forecast) {
-                    forecastHtml = `<div class="forecast-info">🌧️ ${forecast.precip_24h.toFixed(1)}mm/24h <span class="forecast-badge ${forecast.overall_risk}">${forecast.overall_risk}</span></div>`;
-                }
-                
-                item.innerHTML = `
-                    <div class="location-header">
-                        <span class="location-name">${city.name}</span>
-                        <span class="risk-badge ${risk}">${risk}</span>
-                    </div>
-                    <div class="location-meta">Pop: ${(city.population || 0).toLocaleString()}</div>
-                    ${forecastHtml}
-                    ${hasIncidents ? `<span class="incident-badge">⚠️ Recent incident</span>` : ''}
-                `;
-                item.onclick = () => renderCity(stateCode, code);
-                list.appendChild(item);
-                
-                L.marker([city.lat, city.lng], { icon: icons[risk] })
-                    .bindPopup(`<strong>${city.name}</strong><br>Risk: ${risk}${forecast ? '<br>Precip: ' + forecast.precip_24h.toFixed(1) + 'mm' : ''}`)
-                    .addTo(markersLayer);
-            });
-            
-            const group = L.featureGroup(markersLayer.getLayers());
-            if (group.getLayers().length > 0) {
-                map.fitBounds(group.getBounds().pad(0.2));
-            }
-        }
-        
-        function renderCity(stateCode, cityCode) {
-            const state = floodData.states[stateCode];
-            const city = state.cities[cityCode];
-            currentLevel = 'city';
-            renderBreadcrumb('city', city.name);
-            
-            const list = document.getElementById('locationList');
-            list.innerHTML = '';
-            markersLayer.clearLayers();
-            
-            const forecast = getForecastRisk(city.name, stateCode);
-            const risk = getCombinedRisk(city.risk, forecast);
-            
-            // Add city marker
-            L.marker([city.lat, city.lng], { icon: icons[risk] })
-                .bindPopup(`<strong>${city.name}</strong><br>Risk: ${risk}${forecast ? '<br>Precip: ' + forecast.precip_24h.toFixed(1) + 'mm' : ''}`)
-                .addTo(markersLayer);
-            
-            // Show forecast details if available
-            if (forecast) {
-                const detailItem = document.createElement('div');
-                detailItem.className = `location-item ${forecast.overall_risk}`;
-                detailItem.style.marginBottom = '1rem';
-                detailItem.innerHTML = `
-                    <div class="location-header">
-                        <span class="location-name">📡 Weather Forecast</span>
-                    </div>
-                    <div class="forecast-info">
-                        <div>🌧️ 24h: <span>${forecast.precip_24h.toFixed(1)}mm</span></div>
-                        <div>📈 Max 7d: <span>${forecast.precip_max_7d.toFixed(1)}mm</span></div>
-                        <div>📊 Week total: <span>${forecast.precip_total_7d.toFixed(1)}mm</span></div>
-                        <div>⚠️ Risk: <span class="forecast-badge ${forecast.overall_risk}">${forecast.overall_risk}</span></div>
-                    </div>
-                `;
-                list.appendChild(detailItem);
-            }
-            
-            // Render neighborhoods
-            if (city.neighborhoods && city.neighborhoods.length > 0) {
-                city.neighborhoods.forEach(n => {
-                    const nrisk = n.risk || 'green';
-                    const item = document.createElement('div');
-                    item.className = `location-item ${nrisk}`;
-                    item.innerHTML = `
-                        <div class="location-header">
-                            <span class="location-name">${n.name}</span>
-                            <span class="risk-badge ${nrisk}">${nrisk}</span>
-                        </div>
-                    `;
-                    list.appendChild(item);
                     
-                    L.marker([n.lat, n.lng], { icon: icons[nrisk] })
-                        .bindPopup(`<strong>${n.name}</strong><br>${city.name}<br>Risk: ${nrisk}`)
-                        .addTo(markersLayer);
-                });
-                
-                const group = L.featureGroup(markersLayer.getLayers());
-                map.fitBounds(group.getBounds().pad(0.2));
-            } else {
-                // No neighborhoods, show city info
-                const infoItem = document.createElement('div');
-                infoItem.className = `location-item ${risk}`;
-                infoItem.innerHTML = `
-                    <div class="location-meta">
-                        <p>Population: ${(city.population || 0).toLocaleString()}</p>
-                        ${city.recentIncidents && city.recentIncidents.length > 0 ? `
-                            <p style="margin-top:0.5rem; color:var(--risk-red)">Recent Incidents:</p>
-                            ${city.recentIncidents.map(i => `<p style="margin:0.2rem 0; font-size:0.75rem">📅 ${i.date}: ${i.description}</p>`).join('')}
-                        ` : ''}
-                    </div>
-                `;
-                list.appendChild(infoItem);
-                map.setView([city.lat, city.lng], 10);
-            }
-        }
-        
-        function goToLevel(level) {
-            if (level === 'brazil') renderBrazil();
-        }
-        
-        function renderRecentEvents() {
-            const container = document.getElementById('eventsList');
-            const events = floodData.recentEvents || [];
-            
-            if (events.length === 0) {
-                container.innerHTML = '<p style="font-size:0.8rem;color:#666">No recent incidents</p>';
-                return;
+                    // Add marker
+                    const icon = icons[risk] || icons.green;
+                    L.marker([city.lat, city.lng], { icon })
+                        .bindPopup(`<b>${city.name}</b><br>Risk: ${risk.toUpperCase()}${forecast ? '<br>🌧️ ' + forecast.precip_24h.toFixed(1) + 'mm' : ''}`)
+                        .addTo(map);
+                }
             }
             
-            container.innerHTML = events.slice(0, 5).map(e => `
-                <div class="event-item">
-                    <div class="event-date">${e.date}</div>
-                    <div>${e.location}</div>
-                    <div style="color:var(--text-dim);font-size:0.75rem">${e.description}</div>
-                </div>
-            `).join('');
+            // Header stats
+            document.getElementById('headerStats').innerHTML = 
+                `<span class="stat red">🔴 ${stats.red||0}</span>` +
+                `<span class="stat orange">🟠 ${stats.orange||0}</span>` +
+                `<span class="stat yellow">🟡 ${stats.yellow||0}</span>` +
+                `<span class="stat green">🟢 ${stats.green||0}</span>`;
         }
         
         // Legend
         L.control({ position: 'bottomright' }).onAdd = function() {
             const div = L.DomUtil.create('div', 'legend');
             div.innerHTML = `
-                <h4>Flood Risk</h4>
-                <div class="legend-item"><span class="dot red"></span> Critical (>50mm/24h)</div>
-                <div class="legend-item"><span class="dot orange"></span> High (30-50mm/24h)</div>
-                <div class="legend-item"><span class="dot yellow"></span> Warning (10-30mm/24h)</div>
-                <div class="legend-item"><span class="dot green"></span> Safe (<10mm/24h)</div>
+                <h4>Risk Level</h4>
+                <div class="legend-item"><span class="dot red"></span> Critical</div>
+                <div class="legend-item"><span class="dot orange"></span> High</div>
+                <div class="legend-item"><span class="dot yellow"></span> Warning</div>
+                <div class="legend-item"><span class="dot green"></span> Safe</div>
             `;
             return div;
         }.addTo(map);
         
-        // Info panel
-        L.control({ position: 'topleft' }).onAdd = function() {
-            const div = L.DomUtil.create('div', 'info-panel');
-            div.innerHTML = `
-                <h3>🌧️ Floodometer</h3>
-                <p>Brazil flood risk with live weather forecasts.</p>
-                <p style="margin-top:0.5rem;font-size:0.75rem;color:#666">Data: ${forecastData?.timestamp ? new Date(forecastData.timestamp).toLocaleString() : 'Loading...'}</p>
-            `;
-            return div;
-        }.addTo(map);
-        
-        // Initialize
         loadData();
     </script>
 </body>
