@@ -1,0 +1,72 @@
+name: Floodometer Forecast
+
+on:
+  # Run every hour
+  schedule:
+    - cron: '0 * * * *'
+  # Manual trigger
+  workflow_dispatch:
+  # Run on push to main
+  push:
+    branches: [main, master]
+    paths:
+      - 'forecast_monitor.py'
+      - 'docs/data.json'
+
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: pip install requests
+      
+      - name: Run forecast monitor
+        run: python3 forecast_monitor.py
+      
+      - name: Commit and push if changed
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config --local user.email "clawdney@openclaw.ai"
+            git config --local user.name "Clawdney"
+            git add docs/forecast.json
+            git commit -m "Update forecast $(date -u +'%Y-%m-%d %H:%M')" || true
+            git push || true
+          fi
+
+  # Scrape news for high-priority regions
+  scrape-high-priority:
+    needs: forecast
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4 lxml
+      
+      - name: Scrape news for high-priority
+        run: |
+          python3 -c "
+import json
+from pathlib import Path
+
+# Read forecast to find high-priority cities
+forecast_file = Path('docs/forecast.json')
+if forecast_file.exists():
+    data = json.loads(forecast_file.read_text())
+    high_priority = [c for c in data.get('cities', []) if c.get('overall_risk') in ['orange', 'red']]
+    print(f'High priority for scraping: {len(high_priority)} cities')
+            "
