@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-News-based flood city discovery + AccuWeather alert fetcher.
-Automatically finds cities with recent flood incidents.
+Flood news fetcher - gets recent news articles about floods in Brazilian cities.
 """
 
 import requests
@@ -10,7 +9,7 @@ import re
 from datetime import datetime, timedelta
 from collections import defaultdict
 
-# Known city codes for AccuWeather
+# City codes for AccuWeather
 CITY_CODES = {
     'porto alegre': {'lat': -30.0346, 'lng': -51.2177, 'code': '4564'},
     'canoas': {'lat': -29.9177, 'lng': -51.1836, 'code': '4571'},
@@ -56,53 +55,70 @@ CITY_CODES = {
 }
 
 
-def search_flood_news():
-    """Search Brazilian news for recent flood incidents."""
+def fetch_news_for_city(city_name, city_key):
+    """Fetch recent flood news for a specific city."""
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
     }
     
-    # Search queries for recent floods
+    articles = []
+    
+    # Search queries
     queries = [
-        'enchente Brasil março 2026',
-        'alagamento Brasil fevereiro 2026',
-        'chuva forte Brasil janeiro 2026',
-        'deslizamento Brasil 2026',
-        'inundação Brasil 2026'
+        f"{city_name} enchente",
+        f"{city_name} alagamento",
+        f"{city_name} inundação",
+        f"{city_name} chuva",
     ]
     
-    cities_found = defaultdict(list)
-    
-    # Try G1 (Globo) news search
+    # Try G1
     try:
-        url = "https://g1.globo.com/busca/"
-        for query in queries:
+        for query in queries[:2]:  # Limit queries
             try:
-                resp = requests.get(url, params={'q': query}, headers=headers, timeout=10)
-                text = resp.text.lower()
+                url = f"https://g1.globo.com/busca/"
+                resp = requests.get(url, params={'q': query}, headers=headers, timeout=8)
                 
-                # Find city names in results
-                for city_lower, data in CITY_CODES.items():
-                    if city_lower in text:
-                        cities_found[city_lower].append({
-                            'source': 'G1',
-                            'query': query,
-                            'type': 'news'
+                # Parse results
+                titles = re.findall(r'title":"([^"]+)"', resp.text)
+                urls = re.findall(r'url":"([^"]+)"', resp.text)
+                
+                for title, url in zip(titles[:3], urls[:3]):
+                    if city_name.lower() in title.lower():
+                        articles.append({
+                            'title': title[:100],
+                            'url': url.replace('\\/', '/'),
+                            'source': 'G1'
                         })
-            except Exception as e:
-                print(f"Error searching G1 for '{query}': {e}")
+            except:
+                pass
     except Exception as e:
-        print(f"G1 search error: {e}")
+        print(f"Error fetching news for {city_name}: {e}")
     
-    return cities_found
+    # Try Google News (more permissive)
+    try:
+        url = f"https://news.google.com/rss/search?q={city_name}%20enchente%20Brasil&hl=pt-BR&gl=BR&ceid=BR%3Apt-419"
+        resp = requests.get(url, headers=headers, timeout=8)
+        
+        # Parse RSS
+        items = re.findall(r'<item><title><!\[CDATA\[(.*?)\]\]></title><link>(.*?)</link>', resp.text)
+        
+        for title, url in items[:3]:
+            if not any(a['url'] == url for a in articles):
+                articles.append({
+                    'title': title[:100],
+                    'url': url,
+                    'source': 'Google News'
+                })
+    except Exception as e:
+        pass
+    
+    return articles[:3]  # Max 3 articles
 
 
 def fetch_accuweather_alerts():
-    """Fetch alerts for all known cities."""
+    """Fetch AccuWeather alerts for all known cities."""
     headers = {'User-Agent': 'Mozilla/5.0'}
     results = []
-    
-    # Deduplicate by normalized name
     seen = set()
     
     for city_lower, data in CITY_CODES.items():
@@ -110,14 +126,13 @@ def fetch_accuweather_alerts():
             continue
         seen.add(city_lower)
         
+        # Format name
         city_name = city_lower.title()
-        if ' De ' in city_name:
-            city_name = city_name.replace(' De ', ' de ')
-        if ' Das ' in city_name:
-            city_name = city_name.replace(' Das ', ' das ')
-        if ' Do ' in city_name:
-            city_name = city_name.replace(' Do ', ' do ')
-            
+        for prefix in ['de ', 'da ', 'do ', 'das ', 'dos ']:
+            if f' {prefix}' in city_name:
+                city_name = city_name.replace(f' {prefix}', f' {prefix}', 1)
+                break
+        
         try:
             url = f"https://www.accuweather.com/en/br/{city_lower.replace(' ', '-')}/{data['code']}/weather-forecast/{data['code']}"
             r = requests.get(url, headers=headers, timeout=10)
@@ -131,7 +146,8 @@ def fetch_accuweather_alerts():
                 'lat': data['lat'],
                 'lng': data['lng'],
                 'code': data['code'],
-                'accuweatherAlert': None
+                'accuweatherAlert': None,
+                'news': []
             }
             
             if has_alerts:
@@ -141,6 +157,12 @@ def fetch_accuweather_alerts():
                     'type': alert_type,
                     'source': 'AccuWeather'
                 }
+                
+                # Fetch news for flood cities
+                if alert_type == 'FLOOD':
+                    print(f"Fetching news for {city_name}...")
+                    result['news'] = fetch_news_for_city(city_name, city_lower)
+                
                 print(f"⚠️ {city_name}: {alert_type}")
             
             results.append(result)
@@ -152,7 +174,8 @@ def fetch_accuweather_alerts():
                 'lat': data['lat'],
                 'lng': data['lng'],
                 'code': data['code'],
-                'accuweatherAlert': None
+                'accuweatherAlert': None,
+                'news': []
             })
     
     return results
@@ -160,40 +183,28 @@ def fetch_accuweather_alerts():
 
 def main():
     print("=" * 50)
-    print("FLOODOMETER - Auto City Discovery")
+    print("FLOODOMETER - News + Alerts")
     print("=" * 50)
     
-    print("\n[1/2] Searching news for flood cities...")
-    news_cities = search_flood_news()
-    if news_cities:
-        print(f"Found {len(news_cities)} cities in news:")
-        for city in news_cities:
-            print(f"  - {city}")
-    else:
-        print("No new cities from news (will use known cities)")
-    
-    print("\n[2/2] Fetching AccuWeather alerts...")
+    print("\nFetching AccuWeather alerts + news...")
     cities_data = fetch_accuweather_alerts()
-    
-    # Add discovered cities from news that aren't in our list
-    for city_lower in news_cities:
-        if city_lower not in CITY_CODES:
-            print(f"New city from news: {city_lower} - need coordinates!")
     
     # Save results
     output = {
         'timestamp': datetime.now().isoformat(),
-        'news_cities': list(news_cities.keys()),
         'cities': cities_data
     }
     
     with open('docs/alerts.json', 'w') as f:
         json.dump(output, f, indent=2)
     
+    flood_cities = [c for c in cities_data if c['accuweatherAlert'] and c['accuweatherAlert']['type'] == 'FLOOD']
+    total_news = sum(len(c['news']) for c in flood_cities)
+    
     print(f"\n" + "=" * 50)
-    print(f"Saved {len(cities_data)} cities to docs/alerts.json")
-    print(f"Alerts: {sum(1 for c in cities_data if c['accuweatherAlert'])}")
-    print(f"Flood: {sum(1 for c in cities_data if c['accuweatherAlert'] and c['accuweatherAlert']['type'] == 'FLOOD')}")
+    print(f"Saved {len(cities_data)} cities")
+    print(f"Flood alerts: {len(flood_cities)}")
+    print(f"News articles: {total_news}")
     print("=" * 50)
 
 

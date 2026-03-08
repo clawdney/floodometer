@@ -18,7 +18,53 @@
         .stat.yellow { background: rgba(255,204,0,0.2); color: #ffcc00; }
         .stat.green { background: rgba(0,204,102,0.2); color: #00cc66; }
         
-        #map { height: calc(100vh - 50px); width: 100%; }
+        .main-container { display: flex; height: calc(100vh - 50px); }
+        #map { flex: 1; height: 100%; }
+        
+        /* News Panel */
+        .news-panel {
+            width: 320px;
+            background: #1a1a2e;
+            border-left: 1px solid #333;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .news-panel h3 {
+            color: #e94560;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #333;
+        }
+        .news-item {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid #ff4444;
+        }
+        .news-city {
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: #ff4444;
+            margin-bottom: 5px;
+        }
+        .news-title {
+            font-size: 0.75rem;
+            color: #ccc;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .news-link {
+            display: inline-block;
+            font-size: 0.7rem;
+            color: #4da6ff;
+            text-decoration: none;
+            background: rgba(77,166,255,0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .news-link:hover { background: rgba(77,166,255,0.2); }
         
         .legend { background: rgba(26,26,46,0.95); padding: 10px; border-radius: 8px; border: 1px solid #444; font-size: 0.75rem; }
         .legend h4 { margin-bottom: 5px; color: #e94560; }
@@ -33,10 +79,18 @@
         
         #last-updated { font-size: 0.7rem; color: #888; margin-left: 10px; }
         
+        /* Mobile */
         @media (max-width: 768px) {
-            #map { height: 100vh; }
+            .main-container { flex-direction: column; }
+            #map { height: 60vh; }
+            .news-panel { width: 100%; height: 40vh; border-left: none; border-top: 1px solid #333; }
             header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
-            #map { margin-top: 50px; }
+            .main-container { margin-top: 50px; }
+        }
+        
+        @media (max-width: 500px) {
+            .news-panel { display: none; }
+            #map { height: calc(100vh - 50px); }
         }
     </style>
 </head>
@@ -51,7 +105,13 @@
         </div>
     </header>
     
-    <div id="map"></div>
+    <div class="main-container">
+        <div id="map"></div>
+        <div class="news-panel" id="newsPanel">
+            <h3>📰 Últimas Notícias</h3>
+            <div id="newsList"></div>
+        </div>
+    </div>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
@@ -60,13 +120,12 @@
         
         // Icons
         const icons = {
-            red: L.divIcon({ html: '<div style="width:20px;height:20px;background:#ff4444;border-radius:50%;box-shadow:0 0 12px #ff4444;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:bold">!</div>', iconSize: [20, 20], iconAnchor: [10, 10] }),
+            red: L.divIcon({ html: '<div style="width:20px;height:20px;background;border-radius:50%;box-shadow::#ff44440 0 12px #ff4444;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:bold">!</div>', iconSize: [20, 20], iconAnchor: [10, 10] }),
             orange: L.divIcon({ html: '<div style="width:18px;height:18px;background:#ff8800;border-radius:50%;box-shadow:0 0 10px #ff8800;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:bold">!</div>', iconSize: [18, 18], iconAnchor: [9, 9] }),
             yellow: L.divIcon({ html: '<div style="width:14px;height:14px;background:#ffcc00;border-radius:50%;box-shadow:0 0 8px #ffcc00"></div>', iconSize: [14, 14], iconAnchor: [7, 7] }),
             green: L.divIcon({ html: '<div style="width:12px;height:12px;background:#00cc66;border-radius:50%;box-shadow:0 0 6px #00cc66"></div>', iconSize: [12, 12], iconAnchor: [6, 6] })
         };
         
-        // Calculate risk from precipitation
         function calcRisk(precipMm) {
             if (precipMm > 50) return 'red';
             if (precipMm > 30) return 'orange';
@@ -74,44 +133,24 @@
             return 'green';
         }
         
-        // Default precipitation (from Open-Meteo)
-        const defaultPrecip = {
-            "Porto Alegre": 6.8, "Canoas": 4.4, "Lajeado": 8.2,
-            "Rio de Janeiro": 4.4, "Niterói": 0.0,
-            "São Paulo": 5.5, "Campinas": 12.7,
-            "Belo Horizonte": 0.6, "Curitiba": 0.2,
-            "Recife": 1.3, "Salvador": 2.1, "Fortaleza": 0.0,
-            "Manaus": 13.1, "Brasília": 0.5, "Vitória": 2.1,
-            "Goiânia": 1.2, "Natal": 0.0, "Belém": 0.0,
-            "Florianópolis": 0.5, "Blumenau": 7.7,
-            // New cities with flood history
-            "Juiz de Fora": 5.3, "Ubá": 2.1, "Rio das Ostras": 0.5,
-            "Mariana": 7.4, "Carangola": 2.6, "Barra do Piraí": 1.2, "Volta Redonda": 3.4
-        };
-        
         async function init() {
             let stats = { red: 0, orange: 0, yellow: 0, green: 0 };
+            let floodCities = [];
             
-            // Fetch alerts from local JSON (generated by GitHub Action)
+            // Fetch alerts
             let alertsData = { cities: [] };
             try {
                 const resp = await fetch('alerts.json');
-                console.log('Fetch status:', resp.status);
-                if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 alertsData = await resp.json();
-                console.log('Alerts loaded:', alertsData.cities.length, 'cities');
-                
-                // Show last updated time
                 if (alertsData.timestamp) {
                     const date = new Date(alertsData.timestamp);
-                    document.getElementById('last-updated').textContent = 
-                        '(atualizado ' + date.toLocaleTimeString('pt-BR') + ')';
+                    document.getElementById('last-updated').textContent = '(atualizado ' + date.toLocaleTimeString('pt-BR') + ')';
                 }
             } catch (e) {
                 console.error('Error loading alerts:', e);
             }
             
-            // Create lookup (unescape unicode)
+            // Create lookup
             const alertsMap = {};
             alertsData.cities.forEach(c => {
                 const name = c.name.replace(/\\u([0-9a-f]{4})/gi, (m, g) => String.fromCharCode(parseInt(g, 16)));
@@ -119,14 +158,17 @@
             });
             
             // Render markers
-            Object.keys(defaultPrecip).forEach(cityName => {
-                const precip = defaultPrecip[cityName];
-                const alertInfo = alertsMap[cityName];
-                const hasFloodAlert = alertInfo?.accuweatherAlert?.type === 'FLOOD';
+            Object.keys(alertsMap).forEach(cityName => {
+                const city = alertsMap[cityName];
+                const precip = 0; // Using alerts now
+                const hasFloodAlert = city.accuweatherAlert?.type === 'FLOOD';
                 
-                // Risk: FLOOD alert = red, otherwise based on precip
-                let risk = hasFloodAlert ? 'red' : calcRisk(precip);
+                let risk = hasFloodAlert ? 'red' : (city.accuweatherAlert?.type === 'OTHER' ? 'orange' : 'green');
                 stats[risk] = (stats[risk] || 0) + 1;
+                
+                if (hasFloodAlert) {
+                    floodCities.push(city);
+                }
                 
                 const riskLabel = risk === 'red' ? 'CRÍTICO' : risk === 'orange' ? 'ALTO' : risk === 'yellow' ? 'ATENÇÃO' : 'SEGURO';
                 const riskColor = risk === 'red' ? '#ff4444' : risk === 'orange' ? '#ff8800' : risk === 'yellow' ? '#ffcc00' : '#00cc66';
@@ -138,22 +180,14 @@
                         <p style="margin:3px 0"><b>Risco:</b> <span style="color:${riskColor}">${riskLabel}</span></p>
                 `;
                 
-                if (hasFloodAlert) {
-                    popupContent += `<p style="margin:3px 0;color:#ff4444;font-size:11px">⚠️ ALERTA DE ENCHENTE!</p><p style="margin:3px 0;color:#888;font-size:10px">Fonte: AccuWeather</p>`;
-                } else {
-                    popupContent += `<p style="margin:3px 0"><b>Precipitação 24h:</b> ${precip}mm</p><p style="margin:3px 0;color:#888;font-size:11px">Baseado em forecast</p>`;
+                if (hasFloodAlert && city.news && city.news.length > 0) {
+                    popupContent += `<p style="margin:3px 0;color:#888;font-size:11px">📰 ${city.news.length} notícias</p>`;
                 }
                 
                 popupContent += '</div>';
                 
-                // Get coords from alerts data or use defaults
-                const lat = alertInfo?.lat || -14.235;
-                const lng = alertInfo?.lng || -51.925;
-                
-                // Use green icon as fallback
                 const icon = icons[risk] || icons.green;
-                
-                L.marker([lat, lng], { icon: icon })
+                L.marker([city.lat, city.lng], { icon: icon })
                     .bindPopup(popupContent)
                     .addTo(map);
             });
@@ -165,7 +199,38 @@
                 `<span class="stat yellow">🟡 ${stats.yellow}</span>` +
                 `<span class="stat green">🟢 ${stats.green}</span>`;
             
-            console.log('Loaded', Object.keys(defaultPrecip).length, 'cities');
+            // Render news panel
+            renderNews(floodCities);
+            
+            console.log('Loaded', Object.keys(alertsMap).length, 'cities');
+        }
+        
+        function renderNews(floodCities) {
+            const newsList = document.getElementById('newsList');
+            
+            // Sort by number of news
+            floodCities.sort((a, b) => (b.news?.length || 0) - (a.news?.length || 0));
+            
+            let html = '';
+            floodCities.forEach(city => {
+                if (city.news && city.news.length > 0) {
+                    html += `
+                        <div class="news-item">
+                            <div class="news-city">🔴 ${city.name}</div>
+                            ${city.news.slice(0, 2).map(article => `
+                                <div class="news-title">${article.title}</div>
+                                <a href="${article.url}" target="_blank" class="news-link">Ver notícia →</a>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            });
+            
+            if (!html) {
+                html = '<p style="color:#666;font-size:0.8rem;text-align:center;padding:20px">Nenhuma notícia recente encontrada</p>';
+            }
+            
+            newsList.innerHTML = html;
         }
         
         // Legend
@@ -175,10 +240,9 @@
             div.innerHTML = `
                 <h4>🚨 Risco de Enchente</h4>
                 <div class="legend-item"><span class="dot red"></span> 🔴 Crítico (Alerta)</div>
-                <div class="legend-item"><span class="dot orange"></span> 🟠 Alto (30-50mm)</div>
-                <div class="legend-item"><span class="dot yellow"></span> 🟡 Atenção (10-30mm)</div>
-                <div class="legend-item"><span class="dot green"></span> 🟢 Seguro (<10mm)</div>
-                <div style="margin-top:8px;color:#ff4444;font-size:10px">⚠️ AccuWeather = Alerta oficial</div>
+                <div class="legend-item"><span class="dot orange"></span> 🟠 Alto (Alerta)</div>
+                <div class="legend-item"><span class="dot yellow"></span> 🟡 Atenção</div>
+                <div class="legend-item"><span class="dot green"></span> 🟢 Seguro</div>
             `;
             return div;
         };
