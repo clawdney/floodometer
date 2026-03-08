@@ -69,17 +69,18 @@ def get_risk_level(precip_24h):
         return 'red'
 
 def fetch_forecast(lat, lng):
-    """Fetch 7-day forecast from Open-Meteo"""
+    """Fetch 7-day forecast + current from Open-Meteo"""
     params = {
         "latitude": lat,
         "longitude": lng,
+        "current": ["precipitation"],
         "daily": ["precipitation_sum", "precipitation_probability_max", "weathercode"],
         "timezone": "America/Sao_Paulo",
         "forecast_days": 7
     }
     
     try:
-        r = requests.get(FORECAST_API, params=params, timeout=10)
+        r = requests.get(FORECAST_API, params=params, timeout=15)
         if r.status_code == 200:
             return r.json()
     except Exception as e:
@@ -90,6 +91,11 @@ def analyze_forecast(data):
     """Analyze forecast data for flood risk"""
     if not data or 'daily' not in data:
         return None
+    
+    # Get current precipitation
+    current_precip = 0
+    if 'current' in data and data['current']:
+        current_precip = data['current'].get('precipitation', 0) or 0
     
     daily = data['daily']
     precipitation = daily.get('precipitation_sum', [])
@@ -112,6 +118,7 @@ def analyze_forecast(data):
     overall_risk = max(risk_today, risk_week, key=lambda x: risk_order.get(x, 0))
     
     return {
+        'precip_current': current_precip,
         'precip_24h': precip_24h,
         'precip_max_7d': max_precip,
         'precip_total_7d': total_precip,

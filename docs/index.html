@@ -204,8 +204,10 @@
                 
                 // Get precipitation from forecast
                 const forecast = findForecast(cityName, forecastMap) || {};
+                const precipCurrent = forecast.precip_current ?? -1;
                 const precipNow = forecast.precip_24h ?? -1;
                 const precipTotal = forecast.precip_total_7d ?? -1;
+                const precipCurrentStr = precipCurrent >= 0 ? `${precipCurrent.toFixed(1)}mm` : 'N/A';
                 const precipNowStr = precipNow >= 0 ? `${precipNow.toFixed(1)}mm` : 'N/A';
                 const precipTotalStr = precipTotal >= 0 ? `${precipTotal.toFixed(1)}mm` : 'N/A';
                 const alertType = city.accuweatherAlert?.type || null;
@@ -213,14 +215,15 @@
                 let popupContent = `
                     <div style="min-width:150px">
                         <h3 style="margin:0 5px 0 0;display:inline">${cityName}</h3>
-                        ${hasFloodAlert ? '<span class="warning-badge">⚠️ ENCHENTE</span>' : ''}
+                        ${hasFloodAlert ? '<span class="warning-badge">🚨 RISCO DE ENCHENTE</span>' : ''}
                         <p style="margin:3px 0"><b>Risco:</b> <span style="color:${riskColor}">${riskLabel}</span></p>
-                        <p style="margin:3px 0"><b>Precipitação (24h):</b> ${precipNowStr}</p>
+                        <p style="margin:3px 0"><b>Precipitação atual:</b> ${precipCurrentStr}</p>
+                        <p style="margin:3px 0"><b>Próximas 24h:</b> ${precipNowStr}</p>
                         <p style="margin:3px 0"><b>Total (7 dias):</b> ${precipTotalStr}</p>
                 `;
                 
                 if (alertType) {
-                    const alertLabel = alertType === 'FLOOD' ? '🚨 ENCHENTE' : alertType === 'OTHER' ? '⚠️ AVISO METEOROLÓGICO' : '';
+                    const alertLabel = alertType === 'FLOOD' ? '🚨 Risco de Enchente' : alertType === 'OTHER' ? '⚠️ AVISO METEOROLÓGICO' : '';
                     popupContent += `<p style="margin:3px 0;color:#ff8800;font-size:11px">${alertLabel}</p>`;
                 }
                 
