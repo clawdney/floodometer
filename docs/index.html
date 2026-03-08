@@ -105,10 +105,11 @@
                 console.log('No alerts.json found, using defaults');
             }
             
-            // Create lookup
+            // Create lookup (unescape unicode)
             const alertsMap = {};
             alertsData.cities.forEach(c => {
-                alertsMap[c.name] = c;
+                const name = c.name.replace(/\\u([0-9a-f]{4})/gi, (m, g) => String.fromCharCode(parseInt(g, 16)));
+                alertsMap[name] = c;
             });
             
             // Render markers
