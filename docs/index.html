@@ -93,7 +93,10 @@
             let alertsData = { cities: [] };
             try {
                 const resp = await fetch('alerts.json');
+                console.log('Fetch status:', resp.status);
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 alertsData = await resp.json();
+                console.log('Alerts loaded:', alertsData.cities.length, 'cities');
                 
                 // Show last updated time
                 if (alertsData.timestamp) {
@@ -102,7 +105,7 @@
                         '(atualizado ' + date.toLocaleTimeString('pt-BR') + ')';
                 }
             } catch (e) {
-                console.log('No alerts.json found, using defaults');
+                console.error('Error loading alerts:', e);
             }
             
             // Create lookup (unescape unicode)
