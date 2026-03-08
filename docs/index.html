@@ -147,7 +147,10 @@
                 const lat = alertInfo?.lat || -14.235;
                 const lng = alertInfo?.lng || -51.925;
                 
-                L.marker([lat, lng], { icon: icons[risk] })
+                // Use green icon as fallback
+                const icon = icons[risk] || icons.green;
+                
+                L.marker([lat, lng], { icon: icon })
                     .bindPopup(popupContent)
                     .addTo(map);
             });
@@ -163,7 +166,8 @@
         }
         
         // Legend
-        L.control({ position: 'bottomright' }).onAdd = function() {
+        const legendControl = L.control({ position: 'bottomright' });
+        legendControl.onAdd = function() {
             const div = L.DomUtil.create('div', 'legend');
             div.innerHTML = `
                 <h4>🚨 Risco de Enchente</h4>
@@ -174,7 +178,8 @@
                 <div style="margin-top:8px;color:#ff4444;font-size:10px">⚠️ AccuWeather = Alerta oficial</div>
             `;
             return div;
-        }.addTo(map);
+        };
+        legendControl.addTo(map);
         
         init();
     </script>
