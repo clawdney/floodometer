@@ -7,113 +7,31 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #0a0a0a; color: #fff; }
         
-        :root {
-            --bg-dark: #0a0a0a;
-            --bg-panel: #1a1a2e;
-            --bg-card: #16213e;
-            --accent: #e94560;
-            --text: #fff;
-            --text-dim: #aaa;
-            --risk-red: #ff4444;
-            --risk-orange: #ff8800;
-            --risk-yellow: #ffcc00;
-            --risk-green: #00cc66;
-        }
-        
-        html, body {
-            height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-dark);
-            color: var(--text);
-        }
-        
-        header {
-            background: var(--bg-panel);
-            padding: 10px 15px;
-            border-bottom: 2px solid var(--accent);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .logo {
-            font-size: 1.1rem;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .header-stats {
-            display: flex;
-            gap: 8px;
-            font-size: 0.75rem;
-            flex-wrap: wrap;
-        }
-        
-        .stat {
-            padding: 3px 8px;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.1);
-        }
-        
-        .stat.red { background: rgba(255,68,68,0.2); color: var(--risk-red); }
-        .stat.orange { background: rgba(255,136,0,0.2); color: var(--risk-orange); }
-        .stat.yellow { background: rgba(255,204,0,0.2); color: var(--risk-yellow); }
-        .stat.green { background: rgba(0,204,102,0.2); color: var(--risk-green); }
-        
-        .toggle-btn {
-            display: none;
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-size: 0.9rem;
-        }
+        header { background: #1a1a2e; padding: 10px 15px; border-bottom: 2px solid #e94560; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .logo { font-size: 1.1rem; font-weight: bold; }
+        .header-stats { display: flex; gap: 8px; font-size: 0.75rem; flex-wrap: wrap; }
+        .stat { padding: 3px 8px; border-radius: 12px; background: rgba(255,255,255,0.1); }
+        .stat.red { background: rgba(255,68,68,0.2); color: #ff4444; }
+        .stat.orange { background: rgba(255,136,0,0.2); color: #ff8800; }
+        .stat.yellow { background: rgba(255,204,0,0.2); color: #ffcc00; }
+        .stat.green { background: rgba(0,204,102,0.2); color: #00cc66; }
         
         #map { height: calc(100vh - 50px); width: 100%; }
         
-        .legend {
-            background: rgba(26, 26, 46, 0.95);
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #444;
-            font-size: 0.75rem;
-        }
-        
-        .legend h4 { margin-bottom: 5px; color: var(--accent); }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin: 3px 0;
-        }
-        
-        .dot { width: 8px; height: 8px; border-radius: 50%; }
-        
-        .dot.red { background: var(--risk-red); }
-        .dot.orange { background: var(--risk-orange); }
-        .dot.yellow { background: var(--risk-yellow); }
-        .dot.green { background: var(--risk-green); }
+        .legend { background: rgba(26,26,46,0.95); padding: 10px; border-radius: 8px; border: 1px solid #444; font-size: 0.75rem; }
+        .legend h4 { margin-bottom: 5px; color: #e94560; }
+        .legend-item { display: flex; align-items: center; gap: 5px; margin: 3px 0; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dot.red { background: #ff4444; }
+        .dot.orange { background: #ff8800; }
+        .dot.yellow { background: #ffcc00; }
+        .dot.green { background: #00cc66; }
         
         @media (max-width: 768px) {
-            .toggle-btn { display: block; }
-            
-            #map { height: 100vh; width: 100%; }
-            
-            header {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                z-index: 1000;
-            }
-            
+            #map { height: 100vh; }
+            header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
             #map { margin-top: 50px; }
         }
     </style>
@@ -121,19 +39,23 @@
 <body>
     <header>
         <div class="logo">🌧️ Floodometer</div>
-        <div class="header-stats" id="headerStats"></div>
+        <div class="header-stats" id="headerStats">
+            <span class="stat red">🔴 0</span>
+            <span class="stat orange">🟠 0</span>
+            <span class="stat yellow">🟡 0</span>
+            <span class="stat green">🟢 0</span>
+        </div>
     </header>
     
     <div id="map"></div>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // Initialize map
         const map = L.map('map').setView([-14.235, -51.925], 4);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '© OSM' }).addTo(map);
         
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
-        
+        // Icons
         const icons = {
             red: L.divIcon({ html: '<div style="width:16px;height:16px;background:#ff4444;border-radius:50%;box-shadow:0 0 10px #ff4444"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }),
             orange: L.divIcon({ html: '<div style="width:16px;height:16px;background:#ff8800;border-radius:50%;box-shadow:0 0 10px #ff8800"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }),
@@ -141,38 +63,31 @@
             green: L.divIcon({ html: '<div style="width:16px;height:16px;background:#00cc66;border-radius:50%;box-shadow:0 0 10px #00cc66"></div>', iconSize: [16, 16], iconAnchor: [8, 8] })
         };
         
-        let floodData = null;
-        let forecastData = null;
-        
-        async function loadData() {
-            console.log("Loading data...");
-            try {
-                floodData = await (await fetch('data.json')).json();
-                console.log("Flood data loaded:", Object.keys(floodData.states || {}).length, "states");
-            } catch(e) { 
-                console.error("Flood data error:", e); 
-                floodData = { states: {} }; 
+        // Inline data to avoid fetch issues
+        const floodData = {
+            "states": {
+                "MG": { "name": "Minas Gerais", "cities": { "belo_horizonte": { "name": "Belo Horizonte", "lat": -19.9167, "lng": -43.9345, "risk": "yellow" }, "juiz_de_fora": { "name": "Juiz de Fora", "lat": -21.7617, "lng": -43.3217, "risk": "yellow" }, "mariana": { "name": "Mariana", "lat": -20.3775, "lng": -43.4168, "risk": "yellow" }, "carangola": { "name": "Carangola", "lat": -20.7331, "lng": -42.4831, "risk": "red" } } },
+                "RJ": { "name": "Rio de Janeiro", "cities": { "rio_de_janeiro": { "name": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "risk": "red" }, "niteroi": { "name": "Niterói", "lat": -22.8833, "lng": -43.1036, "risk": "yellow" }, "cachoeiro": { "name": "Cachoeiro de Itapemirim", "lat": -20.85, "lng": -41.1, "risk": "yellow" } } },
+                "RS": { "name": "Rio Grande do Sul", "cities": { "porto_alegre": { "name": "Porto Alegre", "lat": -30.0346, "lng": -51.2177, "risk": "red" }, "canoas": { "name": "Canoas", "lat": -29.9177, "lng": -51.1836, "risk": "red" }, "lajeado": { "name": "Lajeado", "lat": -29.1167, "lng": -51.9667, "risk": "red" } } },
+                "SP": { "name": "São Paulo", "cities": { "sao_paulo": { "name": "São Paulo", "lat": -23.5505, "lng": -46.6333, "risk": "yellow" }, "campinas": { "name": "Campinas", "lat": -22.9099, "lng": -47.0626, "risk": "yellow" } } },
+                "SC": { "name": "Santa Catarina", "cities": { "florianopolis": { "name": "Florianópolis", "lat": -27.5954, "lng": -48.548, "risk": "green" }, "blumenau": { "name": "Blumenau", "lat": -26.9194, "lng": -49.0661, "risk": "yellow" } } },
+                "PE": { "name": "Pernambuco", "cities": { "recife": { "name": "Recife", "lat": -8.0476, "lng": -34.877, "risk": "yellow" } } },
+                "BA": { "name": "Bahia", "cities": { "salvador": { "name": "Salvador", "lat": -12.9714, "lng": -38.5014, "risk": "green" }, "ilheus": { "name": "Ilhéus", "lat": -14.7936, "lng": -39.0467, "risk": "yellow" } } },
+                "PA": { "name": "Pará", "cities": { "belem": { "name": "Belém", "lat": -1.4558, "lng": -48.5039, "risk": "yellow" } } }
             }
-            
-            try {
-                forecastData = await (await fetch('forecast.json')).json();
-                console.log("Forecast loaded:", forecastData.cities?.length || 0, "cities");
-            } catch(e) { 
-                console.error("Forecast error:", e); 
-                forecastData = { cities: [] }; 
-            }
-            
-            console.log("Rendering...");
-            renderAll();
-            console.log("Done");
-        }
+        };
         
-        function getForecast(cityName, stateCode) {
-            if (!forecastData?.cities) return null;
-            return forecastData.cities.find(c => 
-                c.name.toLowerCase().includes(cityName.toLowerCase()) ||
-                cityName.toLowerCase().includes(c.name.toLowerCase())
-            );
+        // Forecast data
+        const forecastData = {
+            "cities": [
+                { "name": "São Paulo", "state": "SP", "precip_24h": 5.5, "overall_risk": "orange" },
+                { "name": "Manaus", "state": "AM", "precip_24h": 13.1, "overall_risk": "orange" },
+                { "name": "Porto Alegre", "state": "RS", "precip_24h": 6.8, "overall_risk": "green" }
+            ]
+        };
+        
+        function getForecast(cityName) {
+            return forecastData.cities.find(c => c.name.toLowerCase().includes(cityName.toLowerCase()));
         }
         
         function getRisk(historical, forecast) {
@@ -182,52 +97,37 @@
             return order[f] >= order[h] ? f : h;
         }
         
-        function renderAll() {
-            console.log("renderAll called");
-            let stats = { red: 0, orange: 0, yellow: 0, green: 0 };
-            let count = 0;
-            
-            // States
-            for (const [code, state] of Object.entries(floodData.states || {})) {
-                console.log("State:", code, state.name);
-                for (const [cityKey, city] of Object.entries(state.cities || {})) {
-                    count++;
-                    const forecast = getForecast(city.name, code);
-                    const risk = getRisk(city.risk, forecast);
-                    stats[risk] = (stats[risk] || 0) + 1;
-                    
-                    // Add marker
-                    const icon = icons[risk] || icons.green;
-                    L.marker([city.lat, city.lng], { icon })
-                        .bindPopup(`<b>${city.name}</b><br>Risk: ${risk.toUpperCase()}${forecast ? '<br>🌧️ ' + forecast.precip_24h.toFixed(1) + 'mm' : ''}`)
-                        .addTo(map);
-                }
+        // Render markers
+        let stats = { red: 0, orange: 0, yellow: 0, green: 0 };
+        
+        for (const [code, state] of Object.entries(floodData.states)) {
+            for (const [cityKey, city] of Object.entries(state.cities)) {
+                const forecast = getForecast(city.name);
+                const risk = getRisk(city.risk, forecast);
+                stats[risk] = (stats[risk] || 0) + 1;
+                
+                const icon = icons[risk] || icons.green;
+                L.marker([city.lat, city.lng], { icon: icon })
+                    .bindPopup(`<b>${city.name}</b><br>Risk: ${risk.toUpperCase()}${forecast ? '<br>🌧️ ' + forecast.precip_24h + 'mm' : ''}`)
+                    .addTo(map);
             }
-            
-            console.log("Added", count, "markers");
-            
-            // Header stats
-            document.getElementById('headerStats').innerHTML = 
-                `<span class="stat red">🔴 ${stats.red||0}</span>` +
-                `<span class="stat orange">🟠 ${stats.orange||0}</span>` +
-                `<span class="stat yellow">🟡 ${stats.yellow||0}</span>` +
-                `<span class="stat green">🟢 ${stats.green||0}</span>`;
         }
+        
+        // Update header
+        document.getElementById('headerStats').innerHTML = 
+            `<span class="stat red">🔴 ${stats.red}</span>` +
+            `<span class="stat orange">🟠 ${stats.orange}</span>` +
+            `<span class="stat yellow">🟡 ${stats.yellow}</span>` +
+            `<span class="stat green">🟢 ${stats.green}</span>`;
         
         // Legend
         L.control({ position: 'bottomright' }).onAdd = function() {
             const div = L.DomUtil.create('div', 'legend');
-            div.innerHTML = `
-                <h4>Risk Level</h4>
-                <div class="legend-item"><span class="dot red"></span> Critical</div>
-                <div class="legend-item"><span class="dot orange"></span> High</div>
-                <div class="legend-item"><span class="dot yellow"></span> Warning</div>
-                <div class="legend-item"><span class="dot green"></span> Safe</div>
-            `;
+            div.innerHTML = '<h4>Risk</h4><div class="legend-item"><span class="dot red"></span> Critical</div><div class="legend-item"><span class="dot orange"></span> High</div><div class="legend-item"><span class="dot yellow"></span> Warning</div><div class="legend-item"><span class="dot green"></span> Safe</div>';
             return div;
         }.addTo(map);
         
-        loadData();
+        console.log('Loaded', stats.red + stats.orange + stats.yellow + stats.green, 'cities');
     </script>
 </body>
 </html>
