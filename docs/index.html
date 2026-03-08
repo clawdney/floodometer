@@ -197,6 +197,7 @@
                 
                 // Get precipitation
                 const precip = defaultPrecip[cityName] || 0;
+                const alertType = city.accuweatherAlert?.type || null;
                 
                 let popupContent = `
                     <div style="min-width:150px">
@@ -206,8 +207,9 @@
                         <p style="margin:3px 0"><b>Precipitação:</b> ${precip}mm</p>
                 `;
                 
-                if (hasAlert) {
-                    popupContent += `<p style="margin:3px 0;color:#ff8800;font-size:11px">⚠️ Alerta ativo</p>`;
+                if (alertType) {
+                    const alertLabel = alertType === 'FLOOD' ? '🚨 ENCHENTE' : alertType === 'OTHER' ? '⚠️ AVISO METEOROLÓGICO' : '';
+                    popupContent += `<p style="margin:3px 0;color:#ff8800;font-size:11px">${alertLabel}</p>`;
                 }
                 
                 if (hasFloodAlert && city.news && city.news.length > 0) {
