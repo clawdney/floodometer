@@ -151,6 +151,57 @@
             return null;
         }
         
+        // Historical flood cities (major flood events in Brazil)
+        const floodHistory = [
+            {name: "São Sebastião", lat: -23.8, lng: -45.4, event: "Feb 2023"},
+            {name: "Bertioga", lat: -23.85, lng: -46.15, event: "Feb 2023"},
+            {name: "Santos", lat: -23.96, lng: -46.33, event: "Feb 2023"},
+            {name: "Cachoeiro de Itapemirim", lat: -20.85, lng: -41.1, event: "Nov 2023"},
+            {name: "Iconha", lat: -20.8, lng: -40.8, event: "Nov 2023"},
+            {name: "Rio Novo do Sul", lat: -20.75, lng: -40.75, event: "Nov 2023"},
+            {name: "Alfredo Chaves", lat: -20.65, lng: -40.65, event: "Nov 2023"},
+            {name: "Vitória", lat: -20.32, lng: -40.31, event: "Nov 2023"},
+            {name: "Mariana", lat: -20.38, lng: -43.42, event: "Nov 2015"},
+            {name: "Belo Horizonte", lat: -19.92, lng: -43.93, event: "Jan 2024"},
+            {name: "Petrópolis", lat: -22.5, lng: -43.18, event: "Feb 2022"},
+            {name: "Teresópolis", lat: -22.41, lng: -42.96, event: "Feb 2022"},
+            {name: "Nova Friburgo", lat: -22.28, lng: -42.53, event: "Jan 2011"},
+            {name: "Silva Jardim", lat: -22.65, lng: -42.71, event: "Jan 2011"},
+            {name: "Barra do Piraí", lat: -22.47, lng: -43.83, event: "Jan 2011"},
+            {name: "Volta Redonda", lat: -22.49, lng: -44.1, event: "Jan 2011"},
+            {name: "Blumenau", lat: -26.92, lng: -49.07, event: "Jun 2024"},
+            {name: "Itajaí", lat: -26.91, lng: -48.67, event: "Jun 2024"},
+            {name: "Porto Alegre", lat: -30.03, lng: -51.22, event: "May 2024"},
+            {name: "Canoas", lat: -29.92, lng: -51.18, event: "May 2024"},
+            {name: "Lajeado", lat: -29.12, lng: -51.97, event: "Jul 2024"},
+            {name: "Recife", lat: -8.05, lng: -34.87, event: "May 2024"},
+            {name: "Curitiba", lat: -25.43, lng: -49.27, event: "Nov 2023"},
+        ];
+        
+        // Find nearby historical flood cities
+        function findNearbyHistory(lat, lng, maxKm) {
+            const results = [];
+            for (const h of floodHistory) {
+                const dist = getDistance(lat, lng, h.lat, h.lng);
+                if (dist > 0 && dist <= maxKm) {
+                    results.push({...h, distance: dist});
+                }
+            }
+            return results.sort((a, b) => a.distance - b.distance).slice(0, 3);
+        }
+        
+        // Haversine distance in km
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return Math.round(R * c);
+        }
+        
         async function init() {
             let stats = { red: 0, orange: 0, yellow: 0, green: 0 };
             let floodCities = [];
@@ -211,6 +262,9 @@
                 const precipNowStr = precipNow >= 0 ? `${precipNow.toFixed(1)}mm` : 'N/A';
                 const precipTotalStr = precipTotal >= 0 ? `${precipTotal.toFixed(1)}mm` : 'N/A';
                 const alertType = city.accuweatherAlert?.type || null;
+                const cityLat = city.lat || alertsMap[cityName]?.lat;
+                const cityLng = city.lng || alertsMap[cityName]?.lng;
+                const nearbyHistory = findNearbyHistory(cityLat, cityLng, 100);
                 
                 let popupContent = `
                     <div style="min-width:150px">
@@ -229,6 +283,13 @@
                 
                 if (hasFloodAlert && city.news && city.news.length > 0) {
                     popupContent += `<p style="margin:3px 0;color:#888;font-size:11px">📰 ${city.news.length} notícias</p>`;
+                }
+                
+                if (nearbyHistory.length > 0) {
+                    popupContent += `<p style="margin:8px 0 3px 0;color:#666;font-size:11px;border-top:1px solid #eee;padding-top:5px">📍 Histórico próximo:</p>`;
+                    for (const h of nearbyHistory) {
+                        popupContent += `<p style="margin:2px 0;font-size:10px;color:#888">• ${h.name} (${h.distance}km - ${h.event})</p>`;
+                    }
                 }
                 
                 popupContent += '</div>';
