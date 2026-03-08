@@ -29,6 +29,11 @@
         .dot.yellow { background: #ffcc00; }
         .dot.green { background: #00cc66; }
         
+        .warning-badge { 
+            background: #ff4444; color: white; padding: 2px 6px; border-radius: 4px; 
+            font-size: 10px; font-weight: bold; margin-left: 5px; 
+        }
+        
         @media (max-width: 768px) {
             #map { height: 100vh; }
             header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
@@ -62,7 +67,7 @@
             green: L.divIcon({ html: '<div style="width:12px;height:12px;background:#00cc66;border-radius:50%;box-shadow:0 0 6px #00cc66"></div>', iconSize: [12, 12], iconAnchor: [6, 6] })
         };
         
-        // Calculate risk from precipitation only
+        // Calculate risk from precipitation
         function calcRisk(precipMm) {
             if (precipMm > 50) return 'red';
             if (precipMm > 30) return 'orange';
@@ -70,43 +75,39 @@
             return 'green';
         }
         
-        // Cities with precipitation data (from Open-Meteo)
+        // INMET official warnings (manual - from https://portal.inmet.gov.br/)
+        // These override forecast data
+        const inmetWarnings = {
+            "São Paulo": { level: "red", reason: "INMET: Chuva 30-60mm/h", link: "https://www.accuweather.com/en/br/são-paulo/45881/weather-warnings/45881" },
+            // Add more as needed
+        };
+        
+        // Cities with precipitation data (Open-Meteo forecast)
         const cities = [
-            // RS - Recent floods (but current forecast is LOW - should be green!)
             { name: "Porto Alegre", lat: -30.0346, lng: -51.2177, precip: 6.8 },
             { name: "Canoas", lat: -29.9177, lng: -51.1836, precip: 4.4 },
             { name: "Lajeado", lat: -29.1167, lng: -51.9667, precip: 8.2 },
             
-            // RJ
             { name: "Rio de Janeiro", lat: -22.9068, lng: -43.1729, precip: 4.4 },
             { name: "Niterói", lat: -22.8833, lng: -43.1036, precip: 0.0 },
             { name: "Cachoeiro de Itapemirim", lat: -20.85, lng: -41.1, precip: 7.9 },
             
-            // MG
             { name: "Belo Horizonte", lat: -19.9167, lng: -43.9345, precip: 0.6 },
             { name: "Juiz de Fora", lat: -21.7617, lng: -43.3217, precip: 5.3 },
             { name: "Mariana", lat: -20.3775, lng: -43.4168, precip: 7.4 },
             { name: "Carangola", lat: -20.7331, lng: -42.4831, precip: 2.6 },
             
-            // SP - Current forecast shows rain!
             { name: "São Paulo", lat: -23.5505, lng: -46.6333, precip: 5.5 },
             { name: "Campinas", lat: -22.9099, lng: -47.0626, precip: 12.7 },
             
-            // SC
             { name: "Florianópolis", lat: -27.5954, lng: -48.548, precip: 0.5 },
             { name: "Blumenau", lat: -26.9194, lng: -49.0661, precip: 7.7 },
             
-            // PE
             { name: "Recife", lat: -8.0476, lng: -34.877, precip: 1.3 },
-            
-            // BA
             { name: "Salvador", lat: -12.9714, lng: -38.5014, precip: 2.1 },
             { name: "Ilhéus", lat: -14.7936, lng: -39.0467, precip: 4.5 },
-            
-            // PA
             { name: "Belém", lat: -1.4558, lng: -48.5039, precip: 0.0 },
             
-            // Other capitals
             { name: "Curitiba", lat: -25.4284, lng: -49.2733, precip: 0.2 },
             { name: "Fortaleza", lat: -3.7172, lng: -38.5433, precip: 0.0 },
             { name: "Manaus", lat: -3.119, lng: -60.0217, precip: 13.1 },
@@ -120,21 +121,37 @@
         let stats = { red: 0, orange: 0, yellow: 0, green: 0 };
         
         cities.forEach(city => {
-            const risk = calcRisk(city.precip);
+            // Check for INMET warning first
+            const warning = inmetWarnings[city.name];
+            const risk = warning ? warning.level : calcRisk(city.precip);
             stats[risk] = (stats[risk] || 0) + 1;
             
             const riskLabel = risk === 'red' ? 'CRÍTICO' : risk === 'orange' ? 'ALTO' : risk === 'yellow' ? 'ATENÇÃO' : 'SEGURO';
             const riskColor = risk === 'red' ? '#ff4444' : risk === 'orange' ? '#ff8800' : risk === 'yellow' ? '#ffcc00' : '#00cc66';
             
+            let popupContent = `
+                <div style="min-width:150px">
+                    <h3 style="margin:0 5px 0 0;display:inline">${city.name}</h3>
+                    ${warning ? '<span class="warning-badge">⚠️ INMET</span>' : ''}
+                    <p style="margin:3px 0"><b>Risco:</b> <span style="color:${riskColor}">${riskLabel}</span></p>
+            `;
+            
+            if (warning) {
+                popupContent += `
+                    <p style="margin:3px 0;color:#ff4444;font-size:11px">${warning.reason}</p>
+                    <p style="margin:3px 0;color:#888;font-size:10px">Fonte: INMET/BOMBEIROS</p>
+                `;
+            } else {
+                popupContent += `
+                    <p style="margin:3px 0"><b>Precipitação 24h:</b> ${city.precip}mm</p>
+                    <p style="margin:3px 0;color:#888;font-size:11px">Baseado em forecast</p>
+                `;
+            }
+            
+            popupContent += '</div>';
+            
             L.marker([city.lat, city.lng], { icon: icons[risk] })
-                .bindPopup(`
-                    <div style="min-width:150px">
-                        <h3 style="margin:0 0 5px;color:${riskColor}">${city.name}</h3>
-                        <p style="margin:3px 0"><b>Risco:</b> <span style="color:${riskColor}">${riskLabel}</span></p>
-                        <p style="margin:3px 0"><b>Precipitação 24h:</b> ${city.precip}mm</p>
-                        <p style="margin:3px 0;color:#888;font-size:11px">Baseado em forecast em tempo real</p>
-                    </div>
-                `)
+                .bindPopup(popupContent)
                 .addTo(map);
         });
         
@@ -148,11 +165,18 @@
         // Legend
         L.control({ position: 'bottomright' }).onAdd = function() {
             const div = L.DomUtil.create('div', 'legend');
-            div.innerHTML = '<h4>🚨 Risco de Enchente</h4><div class="legend-item"><span class="dot red"></span> 🔴 Crítico (>50mm)</div><div class="legend-item"><span class="dot orange"></span> 🟠 Alto (30-50mm)</div><div class="legend-item"><span class="dot yellow"></span> 🟡 Atenção (10-30mm)</div><div class="legend-item"><span class="dot green"></span> 🟢 Seguro (<10mm)</div>';
+            div.innerHTML = `
+                <h4>🚨 Risco de Enchente</h4>
+                <div class="legend-item"><span class="dot red"></span> 🔴 Crítico (>50mm)</div>
+                <div class="legend-item"><span class="dot orange"></span> 🟠 Alto (30-50mm)</div>
+                <div class="legend-item"><span class="dot yellow"></span> 🟡 Atenção (10-30mm)</div>
+                <div class="legend-item"><span class="dot green"></span> 🟢 Seguro (<10mm)</div>
+                <div style="margin-top:8px;color:#ff4444;font-size:10px">⚠️ INMET = Alerta oficial</div>
+            `;
             return div;
         }.addTo(map);
         
-        console.log('Loaded', cities.length, 'cities with live forecast');
+        console.log('Loaded', cities.length, 'cities');
     </script>
 </body>
 </html>
