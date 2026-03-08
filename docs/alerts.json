@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-08T01:58:37.102813",
+  "timestamp": "2026-03-08T02:38:10.813277",
   "cities": [
     {
       "name": "Porto Alegre",
@@ -39,9 +39,7 @@
       "lat": -22.9068,
       "lng": -43.1729,
       "code": "4544",
-      "accuweatherAlert": {
-        "hasAlerts": false
-      }
+      "accuweatherAlert": null
     },
     {
       "name": "Niter\u00f3i",
@@ -81,9 +79,7 @@
       "lat": -19.9167,
       "lng": -43.9345,
       "code": "4607",
-      "accuweatherAlert": {
-        "hasAlerts": false
-      }
+      "accuweatherAlert": null
     },
     {
       "name": "Curitiba",
@@ -101,36 +97,28 @@
       "lat": -8.0476,
       "lng": -34.877,
       "code": "4245",
-      "accuweatherAlert": {
-        "hasAlerts": false
-      }
+      "accuweatherAlert": null
     },
     {
       "name": "Salvador",
       "lat": -12.9714,
       "lng": -38.5014,
       "code": "4242",
-      "accuweatherAlert": {
-        "hasAlerts": false
-      }
+      "accuweatherAlert": null
     },
     {
       "name": "Fortaleza",
       "lat": -3.7172,
       "lng": -38.5433,
       "code": "4243",
-      "accuweatherAlert": {
-        "hasAlerts": false
-      }
+      "accuweatherAlert": null
     },
     {
       "name": "Manaus",
       "lat": -3.119,
       "lng": -60.0217,
       "code": "3944",
-      "accuweatherAlert": {
-        "hasAlerts": false
-      }
+      "accuweatherAlert": null
     },
     {
       "name": "Bras\u00edlia",
@@ -148,9 +136,7 @@
       "lat": -20.3155,
       "lng": -40.3128,
       "code": "4605",
-      "accuweatherAlert": {
-        "hasAlerts": false
-      }
+      "accuweatherAlert": null
     },
     {
       "name": "Goi\u00e2nia",
@@ -168,27 +154,21 @@
       "lat": -5.7945,
       "lng": -35.211,
       "code": "4256",
-      "accuweatherAlert": {
-        "hasAlerts": false
-      }
+      "accuweatherAlert": null
     },
     {
       "name": "Bel\u00e9m",
       "lat": -1.4558,
       "lng": -48.5039,
       "code": "4238",
-      "accuweatherAlert": {
-        "hasAlerts": false
-      }
+      "accuweatherAlert": null
     },
     {
       "name": "Florian\u00f3polis",
       "lat": -27.5954,
       "lng": -48.548,
       "code": "4622",
-      "accuweatherAlert": {
-        "hasAlerts": false
-      }
+      "accuweatherAlert": null
     },
     {
       "name": "Blumenau",
@@ -198,6 +178,83 @@
       "accuweatherAlert": {
         "hasAlerts": true,
         "type": "OTHER",
+        "source": "AccuWeather"
+      }
+    },
+    {
+      "name": "Juiz de Fora",
+      "lat": -21.7617,
+      "lng": -43.3217,
+      "code": "45887",
+      "accuweatherAlert": {
+        "hasAlerts": true,
+        "type": "OTHER",
+        "source": "AccuWeather"
+      }
+    },
+    {
+      "name": "Ub\u00e1",
+      "lat": -21.1144,
+      "lng": -42.9407,
+      "code": "45624",
+      "accuweatherAlert": {
+        "hasAlerts": true,
+        "type": "FLOOD",
+        "source": "AccuWeather"
+      }
+    },
+    {
+      "name": "Rio das Ostras",
+      "lat": -22.7483,
+      "lng": -41.9456,
+      "code": "104348",
+      "accuweatherAlert": {
+        "hasAlerts": true,
+        "type": "OTHER",
+        "source": "AccuWeather"
+      }
+    },
+    {
+      "name": "Mariana",
+      "lat": -20.3775,
+      "lng": -43.4168,
+      "code": "10268",
+      "accuweatherAlert": {
+        "hasAlerts": true,
+        "type": "OTHER",
+        "source": "AccuWeather"
+      }
+    },
+    {
+      "name": "Carangola",
+      "lat": -20.7331,
+      "lng": -42.4831,
+      "code": "22869",
+      "accuweatherAlert": {
+        "hasAlerts": true,
+        "type": "OTHER",
+        "source": "AccuWeather"
+      }
+    },
+    {
+      "name": "Barra do Pira\u00ed",
+      "lat": -22.4719,
+      "lng": -43.8278,
+      "code": "10667",
+      "accuweatherAlert": {
+        "hasAlerts": true,
+        "type": "OTHER",
+        "source": "AccuWeather"
+      }
+    },
+    {
+      "name": "Volta Redonda",
+      "lat": -22.4932,
+      "lng": -44.1017,
+      "code": "45878",
+      "accuweatherAlert": {
+        "hasAlerts": true,
+        "type": "FLOOD",
         "source": "AccuWeather"
       }
     }
