@@ -1,7 +1,5 @@
 {
-  "timestamp": "2026-03-08T10:10:27.482330",
-  "total_cities": 32,
-  "high_priority_count": 1,
+  "timestamp": "2026-03-08T10:11:48.893239",
   "cities": [
     {
       "name": "Porto Alegre",
@@ -403,27 +401,6 @@
       ]
     },
     {
-      "name": "Blumenau",
-      "state": "SC",
-      "lat": -26.9194,
-      "lng": -49.0661,
-      "precip_24h": 0.2,
-      "precip_max_7d": 8.3,
-      "precip_total_7d": 24.3,
-      "risk_today": "green",
-      "risk_week": "green",
-      "overall_risk": "green",
-      "dates": [
-        "2026-03-08",
-        "2026-03-09",
-        "2026-03-10",
-        "2026-03-11",
-        "2026-03-12",
-        "2026-03-13",
-        "2026-03-14"
-      ]
-    },
-    {
       "name": "Juiz de Fora",
       "state": "MG",
       "lat": -21.7617,
@@ -665,29 +642,6 @@
       "risk_today": "green",
       "risk_week": "yellow",
       "overall_risk": "yellow",
-      "dates": [
-        "2026-03-08",
-        "2026-03-09",
-        "2026-03-10",
-        "2026-03-11",
-        "2026-03-12",
-        "2026-03-13",
-        "2026-03-14"
-      ]
-    }
-  ],
-  "high_priority": [
-    {
-      "name": "Belo Horizonte",
-      "state": "MG",
-      "lat": -19.9167,
-      "lng": -43.9345,
-      "precip_24h": 0.0,
-      "precip_max_7d": 32.5,
-      "precip_total_7d": 67.6,
-      "risk_today": "green",
-      "risk_week": "orange",
-      "overall_risk": "orange",
       "dates": [
         "2026-03-08",
         "2026-03-09",
