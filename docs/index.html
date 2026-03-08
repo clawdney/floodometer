@@ -133,21 +133,6 @@
             return 'green';
         }
         
-        // Default precipitation (from Open-Meteo) as fallback
-        const defaultPrecip = {
-            "Porto Alegre": 6.8, "Canoas": 4.4, "Lajeado": 8.2,
-            "Rio de Janeiro": 4.4, "Niterói": 0.0,
-            "São Paulo": 5.5, "Campinas": 12.7,
-            "Belo Horizonte": 0.6, "Curitiba": 0.2,
-            "Recife": 1.3, "Salvador": 2.1, "Fortaleza": 0.0,
-            "Manaus": 13.1, "Brasília": 0.5, "Vitória": 2.1,
-            "Goiânia": 1.2, "Natal": 0.0, "Belém": 0.0,
-            "Florianópolis": 0.5, "Blumenau": 7.7,
-            "Juiz de Fora": 5.3, "Ubá": 2.1, "Rio das Ostras": 0.5,
-            "Mariana": 7.4, "Carangola": 2.6, "Barra do Piraí": 1.2, "Volta Redonda": 3.4,
-            "Petrópolis": 1.5, "Teresópolis": 2.0, "Nova Friburgo": 1.8, "Silva Jardim": 0.9
-        };
-        
         // Normalize city name for lookup
         function normalizeCity(name) {
             return name.toLowerCase()
@@ -159,24 +144,35 @@
             let stats = { red: 0, orange: 0, yellow: 0, green: 0 };
             let floodCities = [];
             
-            // Fetch alerts
+            // Fetch alerts + forecast
             let alertsData = { cities: [] };
+            let forecastData = { cities: [] };
             try {
-                const resp = await fetch('alerts.json');
-                alertsData = await resp.json();
+                const [alertsResp, forecastResp] = await Promise.all([
+                    fetch('alerts.json'),
+                    fetch('forecast.json')
+                ]);
+                alertsData = await alertsResp.json();
+                forecastData = await forecastResp.json();
+                
                 if (alertsData.timestamp) {
                     const date = new Date(alertsData.timestamp);
                     document.getElementById('last-updated').textContent = '(atualizado ' + date.toLocaleTimeString('pt-BR') + ')';
                 }
             } catch (e) {
-                console.error('Error loading alerts:', e);
+                console.error('Error loading data:', e);
             }
             
-            // Create lookup
+            // Create lookups
             const alertsMap = {};
             alertsData.cities.forEach(c => {
                 const name = c.name.replace(/\\u([0-9a-f]{4})/gi, (m, g) => String.fromCharCode(parseInt(g, 16)));
                 alertsMap[name] = c;
+            });
+            
+            const forecastMap = {};
+            forecastData.cities?.forEach(c => {
+                forecastMap[c.name] = c;
             });
             
             // Render markers
@@ -195,8 +191,12 @@
                 const riskLabel = risk === 'red' ? 'CRÍTICO' : risk === 'orange' ? 'ALTO' : risk === 'yellow' ? 'ATENÇÃO' : 'SEGURO';
                 const riskColor = risk === 'red' ? '#ff4444' : risk === 'orange' ? '#ff8800' : risk === 'yellow' ? '#ffcc00' : '#00cc66';
                 
-                // Get precipitation
-                const precip = defaultPrecip[cityName] || 0;
+                // Get precipitation from forecast
+                const forecast = forecastMap[cityName] || {};
+                const precipNow = forecast.precip_24h ?? -1;
+                const precipTotal = forecast.precip_total_7d ?? -1;
+                const precipNowStr = precipNow >= 0 ? `${precipNow.toFixed(1)}mm` : 'N/A';
+                const precipTotalStr = precipTotal >= 0 ? `${precipTotal.toFixed(1)}mm` : 'N/A';
                 const alertType = city.accuweatherAlert?.type || null;
                 
                 let popupContent = `
@@ -204,7 +204,8 @@
                         <h3 style="margin:0 5px 0 0;display:inline">${cityName}</h3>
                         ${hasFloodAlert ? '<span class="warning-badge">⚠️ ENCHENTE</span>' : ''}
                         <p style="margin:3px 0"><b>Risco:</b> <span style="color:${riskColor}">${riskLabel}</span></p>
-                        <p style="margin:3px 0"><b>Precipitação:</b> ${precip}mm</p>
+                        <p style="margin:3px 0"><b>Precipitação (24h):</b> ${precipNowStr}</p>
+                        <p style="margin:3px 0"><b>Total (7 dias):</b> ${precipTotalStr}</p>
                 `;
                 
                 if (alertType) {
