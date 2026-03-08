@@ -29,10 +29,9 @@
         .dot.yellow { background: #ffcc00; }
         .dot.green { background: #00cc66; }
         
-        .warning-badge { 
-            background: #ff4444; color: white; padding: 2px 6px; border-radius: 4px; 
-            font-size: 10px; font-weight: bold; margin-left: 5px; 
-        }
+        .warning-badge { background: #ff4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-left: 5px; }
+        
+        #loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: #1a1a2e; padding: 20px; border-radius: 10px; z-index: 1000; }
         
         @media (max-width: 768px) {
             #map { height: 100vh; }
@@ -52,6 +51,7 @@
         </div>
     </header>
     
+    <div id="loading">🌧️ Carregando alertas...</div>
     <div id="map"></div>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -75,92 +75,141 @@
             return 'green';
         }
         
-        // INMET official warnings (manual - from https://portal.inmet.gov.br/)
-        // These override forecast data
-        const inmetWarnings = {
-            "São Paulo": { level: "red", reason: "INMET: Chuva 30-60mm/h", link: "https://www.accuweather.com/en/br/são-paulo/45881/weather-warnings/45881" },
-            // Add more as needed
+        // City codes for AccuWeather
+        const cityCodes = {
+            "Porto Alegre": "4564",
+            "Canoas": "4571", 
+            "Lajeado": "126769",
+            "Rio de Janeiro": "4544",
+            "Niterói": "10733",
+            "São Paulo": "45881",
+            "Campinas": "45883",
+            "Belo Horizonte": "4607",
+            "Curitiba": "4611",
+            "Recife": "4245",
+            "Salvador": "4242",
+            "Fortaleza": "4243",
+            "Manaus": "3944",
+            "Brasília": "15482",
+            "Vitória": "4605",
+            "Goiânia": "8108",
+            "Natal": "4256",
+            "Belém": "4238",
+            "Florianópolis": "4622",
+            "Blumenau": "10236"
         };
         
-        // Cities with precipitation data (Open-Meteo forecast)
+        // Cities with precipitation data (Open-Meteo)
         const cities = [
             { name: "Porto Alegre", lat: -30.0346, lng: -51.2177, precip: 6.8 },
             { name: "Canoas", lat: -29.9177, lng: -51.1836, precip: 4.4 },
             { name: "Lajeado", lat: -29.1167, lng: -51.9667, precip: 8.2 },
-            
             { name: "Rio de Janeiro", lat: -22.9068, lng: -43.1729, precip: 4.4 },
             { name: "Niterói", lat: -22.8833, lng: -43.1036, precip: 0.0 },
-            { name: "Cachoeiro de Itapemirim", lat: -20.85, lng: -41.1, precip: 7.9 },
-            
-            { name: "Belo Horizonte", lat: -19.9167, lng: -43.9345, precip: 0.6 },
-            { name: "Juiz de Fora", lat: -21.7617, lng: -43.3217, precip: 5.3 },
-            { name: "Mariana", lat: -20.3775, lng: -43.4168, precip: 7.4 },
-            { name: "Carangola", lat: -20.7331, lng: -42.4831, precip: 2.6 },
-            
             { name: "São Paulo", lat: -23.5505, lng: -46.6333, precip: 5.5 },
             { name: "Campinas", lat: -22.9099, lng: -47.0626, precip: 12.7 },
-            
-            { name: "Florianópolis", lat: -27.5954, lng: -48.548, precip: 0.5 },
-            { name: "Blumenau", lat: -26.9194, lng: -49.0661, precip: 7.7 },
-            
+            { name: "Belo Horizonte", lat: -19.9167, lng: -43.9345, precip: 0.6 },
+            { name: "Curitiba", lat: -25.4284, lng: -49.2733, precip: 0.2 },
             { name: "Recife", lat: -8.0476, lng: -34.877, precip: 1.3 },
             { name: "Salvador", lat: -12.9714, lng: -38.5014, precip: 2.1 },
-            { name: "Ilhéus", lat: -14.7936, lng: -39.0467, precip: 4.5 },
-            { name: "Belém", lat: -1.4558, lng: -48.5039, precip: 0.0 },
-            
-            { name: "Curitiba", lat: -25.4284, lng: -49.2733, precip: 0.2 },
             { name: "Fortaleza", lat: -3.7172, lng: -38.5433, precip: 0.0 },
             { name: "Manaus", lat: -3.119, lng: -60.0217, precip: 13.1 },
             { name: "Brasília", lat: -15.8267, lng: -47.9218, precip: 0.5 },
-            { name: "Natal", lat: -5.7945, lng: -35.211, precip: 0.0 },
             { name: "Vitória", lat: -20.3155, lng: -40.3128, precip: 2.1 },
-            { name: "Goiânia", lat: -16.6799, lng: -49.255, precip: 1.2 }
+            { name: "Goiânia", lat: -16.6799, lng: -49.255, precip: 1.2 },
+            { name: "Natal", lat: -5.7945, lng: -35.211, precip: 0.0 },
+            { name: "Belém", lat: -1.4558, lng: -48.5039, precip: 0.0 },
+            { name: "Florianópolis", lat: -27.5954, lng: -48.548, precip: 0.5 },
+            { name: "Blumenau", lat: -26.9194, lng: -49.0661, precip: 7.7 }
         ];
         
-        // Render markers
-        let stats = { red: 0, orange: 0, yellow: 0, green: 0 };
+        // Fetch AccuWeather alerts
+        async function fetchAccuWeatherAlerts(cityName, code) {
+            try {
+                const url = `https://www.accuweather.com/en/br/${cityName.toLowerCase().replace(/ /g, '-')}/${code}/weather-forecast/${code}`;
+                const response = await fetch(url);
+                const text = await response.text();
+                
+                // Check for hasAlerts
+                if (text.includes('"hasAlerts":true')) {
+                    // Check for flood alerts
+                    if (text.includes('"alertscategory":"FLOOD') || text.includes('alertscategory":"FLOOD')) {
+                        return { hasAlerts: true, type: 'FLOOD' };
+                    }
+                    return { hasAlerts: true, type: 'OTHER' };
+                }
+            } catch (e) {
+                console.error('Error fetching', cityName, e);
+            }
+            return { hasAlerts: false };
+        }
         
-        cities.forEach(city => {
-            // Check for INMET warning first
-            const warning = inmetWarnings[city.name];
-            const risk = warning ? warning.level : calcRisk(city.precip);
-            stats[risk] = (stats[risk] || 0) + 1;
+        // Main render
+        async function init() {
+            let stats = { red: 0, orange: 0, yellow: 0, green: 0 };
+            const alertsFound = [];
             
-            const riskLabel = risk === 'red' ? 'CRÍTICO' : risk === 'orange' ? 'ALTO' : risk === 'yellow' ? 'ATENÇÃO' : 'SEGURO';
-            const riskColor = risk === 'red' ? '#ff4444' : risk === 'orange' ? '#ff8800' : risk === 'yellow' ? '#ffcc00' : '#00cc66';
-            
-            let popupContent = `
-                <div style="min-width:150px">
-                    <h3 style="margin:0 5px 0 0;display:inline">${city.name}</h3>
-                    ${warning ? '<span class="warning-badge">⚠️ INMET</span>' : ''}
-                    <p style="margin:3px 0"><b>Risco:</b> <span style="color:${riskColor}">${riskLabel}</span></p>
-            `;
-            
-            if (warning) {
-                popupContent += `
-                    <p style="margin:3px 0;color:#ff4444;font-size:11px">${warning.reason}</p>
-                    <p style="margin:3px 0;color:#888;font-size:10px">Fonte: INMET/BOMBEIROS</p>
-                `;
-            } else {
-                popupContent += `
-                    <p style="margin:3px 0"><b>Precipitação 24h:</b> ${city.precip}mm</p>
-                    <p style="margin:3px 0;color:#888;font-size:11px">Baseado em forecast</p>
-                `;
+            // Fetch alerts for all cities
+            for (const city of cities) {
+                const code = cityCodes[city.name];
+                if (code) {
+                    const alerts = await fetchAccuWeatherAlerts(city.name, code);
+                    if (alerts.hasAlerts) {
+                        city.accuweatherAlert = alerts;
+                        alertsFound.push(city.name);
+                        console.log('⚠️ Alert:', city.name, alerts.type);
+                    }
+                }
             }
             
-            popupContent += '</div>';
+            // Render markers
+            cities.forEach(city => {
+                let risk;
+                
+                // AccuWeather alerts override forecast
+                if (city.accuweatherAlert && city.accuweatherAlert.type === 'FLOOD') {
+                    risk = 'red';
+                } else {
+                    risk = calcRisk(city.precip);
+                }
+                
+                stats[risk] = (stats[risk] || 0) + 1;
+                
+                const riskLabel = risk === 'red' ? 'CRÍTICO' : risk === 'orange' ? 'ALTO' : risk === 'yellow' ? 'ATENÇÃO' : 'SEGURO';
+                const riskColor = risk === 'red' ? '#ff4444' : risk === 'orange' ? '#ff8800' : risk === 'yellow' ? '#ffcc00' : '#00cc66';
+                
+                let popupContent = `
+                    <div style="min-width:150px">
+                        <h3 style="margin:0 5px 0 0;display:inline">${city.name}</h3>
+                        ${city.accuweatherAlert ? '<span class="warning-badge">⚠️ ACCUWEATHER</span>' : ''}
+                        <p style="margin:3px 0"><b>Risco:</b> <span style="color:${riskColor}">${riskLabel}</span></p>
+                `;
+                
+                if (city.accuweatherAlert) {
+                    popupContent += `<p style="margin:3px 0;color:#ff4444;font-size:11px">⚠️ ALERTA DE ENCHENTE!</p><p style="margin:3px 0;color:#888;font-size:10px">Fonte: AccuWeather</p>`;
+                } else {
+                    popupContent += `<p style="margin:3px 0"><b>Precipitação 24h:</b> ${city.precip}mm</p><p style="margin:3px 0;color:#888;font-size:11px">Baseado em forecast</p>`;
+                }
+                
+                popupContent += '</div>';
+                
+                L.marker([city.lat, city.lng], { icon: icons[risk] })
+                    .bindPopup(popupContent)
+                    .addTo(map);
+            });
             
-            L.marker([city.lat, city.lng], { icon: icons[risk] })
-                .bindPopup(popupContent)
-                .addTo(map);
-        });
-        
-        // Update header
-        document.getElementById('headerStats').innerHTML = 
-            `<span class="stat red">🔴 ${stats.red}</span>` +
-            `<span class="stat orange">🟠 ${stats.orange}</span>` +
-            `<span class="stat yellow">🟡 ${stats.yellow}</span>` +
-            `<span class="stat green">🟢 ${stats.green}</span>`;
+            // Update header
+            document.getElementById('headerStats').innerHTML = 
+                `<span class="stat red">🔴 ${stats.red}</span>` +
+                `<span class="stat orange">🟠 ${stats.orange}</span>` +
+                `<span class="stat yellow">🟡 ${stats.yellow}</span>` +
+                `<span class="stat green">🟢 ${stats.green}</span>`;
+            
+            // Hide loading
+            document.getElementById('loading').style.display = 'none';
+            
+            console.log('Loaded', cities.length, 'cities, alerts found:', alertsFound);
+        }
         
         // Legend
         L.control({ position: 'bottomright' }).onAdd = function() {
@@ -171,12 +220,12 @@
                 <div class="legend-item"><span class="dot orange"></span> 🟠 Alto (30-50mm)</div>
                 <div class="legend-item"><span class="dot yellow"></span> 🟡 Atenção (10-30mm)</div>
                 <div class="legend-item"><span class="dot green"></span> 🟢 Seguro (<10mm)</div>
-                <div style="margin-top:8px;color:#ff4444;font-size:10px">⚠️ INMET = Alerta oficial</div>
+                <div style="margin-top:8px;color:#ff4444;font-size:10px">⚠️ AccuWeather = Alerta oficial</div>
             `;
             return div;
         }.addTo(map);
         
-        console.log('Loaded', cities.length, 'cities');
+        init();
     </script>
 </body>
 </html>
