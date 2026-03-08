@@ -140,6 +140,17 @@
                 .replace(/[^a-z]/g, '');
         }
         
+        // Find matching forecast city
+        function findForecast(cityName, forecastMap) {
+            const normalized = normalizeCity(cityName);
+            for (const [fcName, fcData] of Object.entries(forecastMap)) {
+                if (normalizeCity(fcName) === normalized) {
+                    return fcData;
+                }
+            }
+            return null;
+        }
+        
         async function init() {
             let stats = { red: 0, orange: 0, yellow: 0, green: 0 };
             let floodCities = [];
@@ -192,7 +203,7 @@
                 const riskColor = risk === 'red' ? '#ff4444' : risk === 'orange' ? '#ff8800' : risk === 'yellow' ? '#ffcc00' : '#00cc66';
                 
                 // Get precipitation from forecast
-                const forecast = forecastMap[cityName] || {};
+                const forecast = findForecast(cityName, forecastMap) || {};
                 const precipNow = forecast.precip_24h ?? -1;
                 const precipTotal = forecast.precip_total_7d ?? -1;
                 const precipNowStr = precipNow >= 0 ? `${precipNow.toFixed(1)}mm` : 'N/A';
