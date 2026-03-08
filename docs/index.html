@@ -187,7 +187,7 @@
                     results.push({...h, distance: dist});
                 }
             }
-            return results.sort((a, b) => a.distance - b.distance).slice(0, 3);
+            return results.sort((a, b) => a.distance - b.distance).slice(0, 5);
         }
         
         // Haversine distance in km
@@ -264,7 +264,7 @@
                 const alertType = city.accuweatherAlert?.type || null;
                 const cityLat = city.lat || alertsMap[cityName]?.lat;
                 const cityLng = city.lng || alertsMap[cityName]?.lng;
-                const nearbyHistory = findNearbyHistory(cityLat, cityLng, 100);
+                const nearbyHistory = findNearbyHistory(cityLat, cityLng, 200);
                 
                 let popupContent = `
                     <div style="min-width:150px">
