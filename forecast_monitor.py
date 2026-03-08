@@ -21,28 +21,40 @@ THRESHOLDS = {
     'red': 100     # > 50mm = critical
 }
 
-# Sample cities with coordinates (expand to all Brazil)
+# All cities from alerts.json
 CITIES = [
     {"name": "Porto Alegre", "state": "RS", "lat": -30.0346, "lng": -51.2177},
     {"name": "Canoas", "state": "RS", "lat": -29.9177, "lng": -51.1836},
-    {"name": "Belo Horizonte", "state": "MG", "lat": -19.9167, "lng": -43.9345},
-    {"name": "Juiz de Fora", "state": "MG", "lat": -21.7617, "lng": -43.3217},
+    {"name": "Lajeado", "state": "RS", "lat": -29.1167, "lng": -51.9667},
     {"name": "Rio de Janeiro", "state": "RJ", "lat": -22.9068, "lng": -43.1729},
     {"name": "Niterói", "state": "RJ", "lat": -22.8833, "lng": -43.1036},
     {"name": "São Paulo", "state": "SP", "lat": -23.5505, "lng": -46.6333},
     {"name": "Campinas", "state": "SP", "lat": -22.9099, "lng": -47.0626},
+    {"name": "Belo Horizonte", "state": "MG", "lat": -19.9167, "lng": -43.9345},
+    {"name": "Curitiba", "state": "PR", "lat": -25.4284, "lng": -49.2733},
     {"name": "Recife", "state": "PE", "lat": -8.0476, "lng": -34.8770},
     {"name": "Salvador", "state": "BA", "lat": -12.9714, "lng": -38.5014},
-    {"name": "Blumenau", "state": "SC", "lat": -26.9194, "lng": -49.0661},
-    {"name": "Florianópolis", "state": "SC", "lat": -27.5954, "lng": -48.5480},
-    {"name": "Curitiba", "state": "PR", "lat": -25.4284, "lng": -49.2733},
     {"name": "Fortaleza", "state": "CE", "lat": -3.7172, "lng": -38.5433},
-    {"name": "Belém", "state": "PA", "lat": -1.4558, "lng": -48.5039},
     {"name": "Manaus", "state": "AM", "lat": -3.1190, "lng": -60.0217},
     {"name": "Brasília", "state": "DF", "lat": -15.8267, "lng": -47.9218},
-    {"name": "Cachoeiro de Itapemirim", "state": "RJ", "lat": -20.8500, "lng": -41.1000},
-    {"name": "Carangola", "state": "MG", "lat": -20.7331, "lng": -42.4831},
+    {"name": "Vitória", "state": "ES", "lat": -20.3155, "lng": -40.3128},
+    {"name": "Goiânia", "state": "GO", "lat": -16.6799, "lng": -49.2550},
+    {"name": "Natal", "state": "RN", "lat": -5.7945, "lng": -35.2110},
+    {"name": "Belém", "state": "PA", "lat": -1.4558, "lng": -48.5039},
+    {"name": "Florianópolis", "state": "SC", "lat": -27.5954, "lng": -48.5480},
+    {"name": "Blumenau", "state": "SC", "lat": -26.9194, "lng": -49.0661},
+    {"name": "Juiz de Fora", "state": "MG", "lat": -21.7617, "lng": -43.3217},
+    {"name": "Ubá", "state": "MG", "lat": -21.1144, "lng": -42.9407},
+    {"name": "Rio das Ostras", "state": "RJ", "lat": -22.7483, "lng": -41.9456},
     {"name": "Mariana", "state": "MG", "lat": -20.3775, "lng": -43.4168},
+    {"name": "Carangola", "state": "MG", "lat": -20.7331, "lng": -42.4831},
+    {"name": "Barra do Piraí", "state": "RJ", "lat": -22.4719, "lng": -43.8278},
+    {"name": "Volta Redonda", "state": "RJ", "lat": -22.4932, "lng": -44.1017},
+    {"name": "Petrópolis", "state": "RJ", "lat": -22.5050, "lng": -43.1789},
+    {"name": "Teresópolis", "state": "RJ", "lat": -22.4123, "lng": -42.9632},
+    {"name": "Nova Friburgo", "state": "RJ", "lat": -22.2818, "lng": -42.5346},
+    {"name": "Silva Jardim", "state": "RJ", "lat": -22.6509, "lng": -42.7119},
+    {"name": "Cachoeiro de Itapemirim", "state": "RJ", "lat": -20.8500, "lng": -41.1000},
 ]
 
 def get_risk_level(precip_24h):
